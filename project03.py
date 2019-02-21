@@ -183,7 +183,9 @@ def main():
         print("\tMarried: {}".format(fam.get_marriage()))
         print("\tDivorced: {}".format(fam.get_divorce()))
         print("\tHusband Id: {}".format(fam.get_husband()))
+        print("\tHusband Name: {}".format(individuals[int(fam.get_husband()[1:]) - 1].get_name()))
         print("\tWife Id: {}".format(fam.get_wife()))
+        print("\tWife Name: {}".format(individuals[int(fam.get_wife()[1:]) - 1].get_name()))
         print("\tChildren: {}".format(", ".join(fam.get_children())))
 
 

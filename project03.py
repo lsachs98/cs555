@@ -163,8 +163,8 @@ def read_file():
         index = index + 1
 
 
-def main():
-    read_file()
+def print_individuals():
+    individuals.sort(key=lambda x: int(x.i_id[1:]))
     print("--- Individuals ---")
     for ind in individuals:
         print("{}:".format(ind.get_id()))
@@ -176,7 +176,9 @@ def main():
         print("\tChildren: {}".format(ind.get_child()))
         print("\tSpouse: {}".format(ind.get_spouse()))
 
-    print()
+
+def print_families():
+    families.sort(key=lambda x: int(x.f_id[1:]))
     print("--- Families ---")
     for fam in families:
         print("{}:".format(fam.get_id()))
@@ -187,6 +189,13 @@ def main():
         print("\tWife Id: {}".format(fam.get_wife()))
         print("\tWife Name: {}".format(individuals[int(fam.get_wife()[1:]) - 1].get_name()))
         print("\tChildren: {}".format(", ".join(fam.get_children())))
+
+
+def main():
+    read_file()
+    print_individuals()
+    print()
+    print_families()
 
 
 if __name__ == '__main__':

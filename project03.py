@@ -190,6 +190,11 @@ def print_families():
         print("\tWife Name: {}".format(individuals[int(fam.get_wife()[1:]) - 1].get_name()))
         print("\tChildren: {}".format(", ".join(fam.get_children())))
 
+def get_infiviuals():
+    return individuals;
+
+def get_families():
+    return families;
 
 def main():
     read_file()

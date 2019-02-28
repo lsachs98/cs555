@@ -100,73 +100,66 @@ def read_file():
     with open(FILE_NAME) as file:
         lines = file.readlines()
     file.close()
-    return lines
 
-
-def process_individual(lines, index, new_individual):
-    details = lines[index].split(" ", 2)
-    while details[0] != "0" and index < len(lines):
-        if details[0] == "1":
-            if details[1] == "NAME":
-                new_individual.set_name(details[2].rstrip())
-            elif details[1] == "SEX":
-                new_individual.set_sex(details[2].rstrip())
-            elif details[1] == "FAMS":
-                new_individual.set_spouse(details[2].rstrip())
-            elif details[1] == "FAMC":
-                new_individual.set_child(details[2].rstrip())
-            elif details[1].rstrip() == "BIRT":
-                index = index + 1
-                details = lines[index].split(" ", 2)
-                if details[0] == "2" and details[1] == "DATE":
-                    new_individual.set_birth(details[2].rstrip())
-            elif details[1].rstrip() == "DEAT":
-                index = index + 1
-                details = lines[index].split(" ", 2)
-                if details[0] == "2" and details[1] == "DATE":
-                    new_individual.set_death(details[2].rstrip())
-        index = index + 1
-        details = lines[index].split(" ", 2)
-    individuals.append(new_individual)
-
-
-def process_family(lines, index, new_family):
-    details = lines[index].split(" ", 2)
-    while details[0] != "0" and index < len(lines):
-        if details[0] == "1":
-            if details[1] == "HUSB":
-                new_family.set_husband(details[2].rstrip())
-            elif details[1] == "WIFE":
-                new_family.set_wife(details[2].rstrip())
-            elif details[1] == "CHIL":
-                new_family.add_child(details[2].rstrip())
-            elif details[1].rstrip() == "MARR":
-                index = index + 1
-                details = lines[index].split(" ", 2)
-                if details[0] == "2" and details[1] == "DATE":
-                    new_family.set_marriage(details[2].rstrip())
-            elif details[1].rstrip() == "DIV":
-                index = index + 1
-                details = lines[index].split(" ", 2)
-                if details[0] == "2" and details[1] == "DATE":
-                    new_family.set_divorce(details[2].rstrip())
-        index = index + 1
-        details = lines[index].split(" ", 2)
-
-    families.append(new_family)
-
-
-def process_file(lines):
     index = 0
     while index < len(lines):
         line = lines[index].split(" ", 2)
 
-        if len(line) == 3 and line[0] == "0":
-            if line[2].rstrip() == "INDI":
-                process_individual(lines, index + 1, Individual(line[1].rstrip()))
-            elif line[2].rstrip() == "FAM":
-                process_family(lines, index + 1, Family(line[1].rstrip()))
-
+        if len(line) == 3:
+            if line[0] == "0" and line[2].rstrip() == "INDI":
+                new_individual = Individual(line[1].rstrip())
+                index = index + 1
+                details = lines[index].split(" ", 2)
+                while details[0] != "0" and index < len(lines):
+                    if details[0] == "1":
+                        if details[1] == "NAME":
+                            new_individual.set_name(details[2].rstrip())
+                        if details[1] == "SEX":
+                            new_individual.set_sex(details[2].rstrip())
+                        if details[1] == "FAMS":
+                            new_individual.set_spouse(details[2].rstrip())
+                        if details[1] == "FAMC":
+                            new_individual.set_child(details[2].rstrip())
+                        if details[1].rstrip() == "BIRT":
+                            index = index + 1
+                            details = lines[index].split(" ", 2)
+                            if details[0] == "2" and details[1] == "DATE":
+                                new_individual.set_birth(details[2].rstrip())
+                        if details[1].rstrip() == "DEAT":
+                            index = index + 1
+                            details = lines[index].split(" ", 2)
+                            if details[0] == "2" and details[1] == "DATE":
+                                new_individual.set_death(details[2].rstrip())
+                    index = index + 1
+                    details = lines[index].split(" ", 2)
+                individuals.append(new_individual)
+                index = index - 1
+            if line[0] == "0" and line[2].rstrip() == "FAM":
+                new_family = Family(line[1].rstrip())
+                index = index + 1
+                details = lines[index].split(" ", 2)
+                while details[0] != "0" and index < len(lines):
+                    if details[0] == "1":
+                        if details[1] == "HUSB":
+                            new_family.set_husband(details[2].rstrip())
+                        if details[1] == "WIFE":
+                            new_family.set_wife(details[2].rstrip())
+                        if details[1] == "CHIL":
+                            new_family.add_child(details[2].rstrip())
+                        if details[1].rstrip() == "MARR":
+                            index = index + 1
+                            details = lines[index].split(" ", 2)
+                            if details[0] == "2" and details[1] == "DATE":
+                                new_family.set_marriage(details[2].rstrip())
+                        if details[1].rstrip() == "DIV":
+                            index = index + 1
+                            details = lines[index].split(" ", 2)
+                            if details[0] == "2" and details[1] == "DATE":
+                                new_family.set_divorce(details[2].rstrip())
+                    index = index + 1
+                    details = lines[index].split(" ", 2)
+                families.append(new_family)
+                index = index - 1
         index = index + 1
 
 
@@ -182,7 +175,6 @@ def print_individuals():
         print("\tDeath: {}".format(ind.get_death()))
         print("\tChildren: {}".format(ind.get_child()))
         print("\tSpouse: {}".format(ind.get_spouse()))
-    print()
 
 
 def print_families():
@@ -197,12 +189,12 @@ def print_families():
         print("\tWife Id: {}".format(fam.get_wife()))
         print("\tWife Name: {}".format(individuals[int(fam.get_wife()[1:]) - 1].get_name()))
         print("\tChildren: {}".format(", ".join(fam.get_children())))
-    print()
 
 
 def main():
-    process_file(read_file())
+    read_file()
     print_individuals()
+    print()
     print_families()
 
 

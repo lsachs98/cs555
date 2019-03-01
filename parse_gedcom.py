@@ -66,6 +66,37 @@ def process_individual(lines, index, new_individual):
     individuals.append(new_individual)
 
 
+def get_husband_id(indi):
+    return families[int(indi.child_id[1:]) - 1].husband
+
+
+def get_wife_id(indi):
+    return families[int(indi.child_id[1:]) - 1].wife
+
+
+def get_husband(husband_id):
+    return individuals[int(husband_id[1:]) - 1]
+
+
+def get_wife(wife_id):
+    return individuals[int(wife_id[1:]) - 1]
+
+
+def user_story_09(indi):
+    husband_id = get_husband_id(indi)  # get family's husband id
+    wife_id = get_wife_id(indi)  # get family's wife id
+    husband = get_husband(husband_id)  # get husband
+    wife = get_wife(wife_id)  # get wife
+
+    if husband.death is None and wife.death is None:  # if husband and wife are alive
+        return True
+    elif husband.death is not None and indi.birth < husband.death:  # if husband is dead
+        return True
+    elif wife.death is not None and indi.birth < wife.death:  # if wife is dead
+        return True
+    return False
+
+
 def process_family(lines, index, new_family):
     details = lines[index].split(" ", 2)
     while details[0] != "0" and index < len(lines):
@@ -93,16 +124,18 @@ def process_file(lines):
             elif line[2].rstrip() == "FAM":
                 process_family(lines, index + 1, Family(line[1].rstrip()))
         index += 1
+    individuals.sort(key=lambda x: int(x.i_id[1:]))
+    families.sort(key=lambda x: int(x.f_id[1:]))
 
 
 def print_individuals():
-    individuals.sort(key=lambda x: int(x.i_id[1:]))
     print("--- Individuals ---")
     for ind in individuals:
         print("{}:".format(ind.i_id))
         print("\tName: {}".format(ind.name))
         print("\tSex: {}".format(ind.sex))
         print("\tBirthday: {}".format(datetime.strftime(ind.birth, '%d %b %Y')))
+        print("\tBirth before either Parent's Death: {}".format(user_story_09(ind) if ind.child_id is not None else "NA"))
         print("\tAlive: {}".format(True if ind.death is None else False))
         print("\tDeath: {}".format(datetime.strftime(ind.death, '%d %b %Y') if ind.death is not None else "NA"))
         print("\tChildren: {}".format(ind.child_id))
@@ -111,7 +144,6 @@ def print_individuals():
 
 
 def print_families():
-    families.sort(key=lambda x: int(x.f_id[1:]))
     print("--- Families ---")
     for fam in families:
         print("{}:".format(fam.f_id))

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 individuals = []
 families = []
 FILE_NAME = "test0.ged"
@@ -47,12 +49,12 @@ def process_individual(lines, index, new_individual):
                 index = index + 1
                 details = lines[index].split(" ", 2)
                 if details[0] == "2" and details[1] == "DATE":
-                    new_individual.birth = details[2].rstrip()
+                    new_individual.birth = datetime.strptime(details[2].rstrip(), '%d %b %Y').date()
             elif details[1].rstrip() == "DEAT":
                 index = index + 1
                 details = lines[index].split(" ", 2)
                 if details[0] == "2" and details[1] == "DATE":
-                    new_individual.death = details[2].rstrip()
+                    new_individual.death = datetime.strptime(details[2].rstrip(), '%d %b %Y').date()
         index = index + 1
         details = lines[index].split(" ", 2)
     individuals.append(new_individual)
@@ -72,12 +74,12 @@ def process_family(lines, index, new_family):
                 index = index + 1
                 details = lines[index].split(" ", 2)
                 if details[0] == "2" and details[1] == "DATE":
-                    new_family.marriage = details[2].rstrip()
+                    new_family.marriage = datetime.strptime(details[2].rstrip(), '%d %b %Y').date()
             elif details[1].rstrip() == "DIV":
                 index = index + 1
                 details = lines[index].split(" ", 2)
                 if details[0] == "2" and details[1] == "DATE":
-                    new_family.divorce = details[2].rstrip()
+                    new_family.divorce = datetime.strptime(details[2].rstrip(), '%d %b %Y').date()
         index = index + 1
         details = lines[index].split(" ", 2)
 
@@ -105,9 +107,9 @@ def print_individuals():
         print("{}:".format(ind.i_id))
         print("\tName: {}".format(ind.name))
         print("\tSex: {}".format(ind.sex))
-        print("\tBirthday: {}".format(ind.birth))
+        print("\tBirthday: {}".format(datetime.strftime(ind.birth, '%d %b %Y')))
         print("\tAlive: {}".format(True if ind.death is None else False))
-        print("\tDeath: {}".format(ind.death))
+        print("\tDeath: {}".format(datetime.strftime(ind.death, '%d %b %Y') if ind.death is not None else "NA"))
         print("\tChildren: {}".format(ind.child_id))
         print("\tSpouse: {}".format(ind.spouse_id))
     print()
@@ -118,8 +120,8 @@ def print_families():
     print("--- Families ---")
     for fam in families:
         print("{}:".format(fam.f_id))
-        print("\tMarried: {}".format(fam.marriage))
-        print("\tDivorced: {}".format(fam.divorce))
+        print("\tMarried: {}".format(datetime.strftime(fam.marriage, '%d %b %Y') if fam.marriage is not None else "NA"))
+        print("\tDivorced: {}".format(datetime.strftime(fam.divorce, '%d %b %Y') if fam.divorce is not None else "NA"))
         print("\tHusband Id: {}".format(fam.husband))
         print("\tHusband Name: {}".format(individuals[int(fam.husband[1:]) - 1].name))
         print("\tWife Id: {}".format(fam.wife))

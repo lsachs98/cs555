@@ -13,6 +13,12 @@ class GEDInfo:
     def set_families(self, families):
         self.families = families
 
+    def add_individual(self, individual):
+        self.individuals.append(individual)
+
+    def add_family(self, family):
+        self.families.append(individual)
+
     def get_individuals(self):
         return self.individuals
 
@@ -177,7 +183,7 @@ def read_file():
                 families.append(new_family)
                 index = index - 1
         index = index + 1
-    GEDInf = new GEDInfo()
+    GEDInf = GEDInfo()
     GEDInf.set_individuals(individuals)
     GEDInf.set_families(families)
 
@@ -211,9 +217,6 @@ def print_families():
 
 def main():
     read_file()
-    print_individuals()
-    print()
-    print_families()
 
 
 if __name__ == '__main__':

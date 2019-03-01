@@ -33,6 +33,20 @@ def read_file():
     return lines
 
 
+def process_date(obj, line, date_type):
+    if line[0] == "2" and line[1] == "DATE":
+        if isinstance(obj, Individual):
+            if date_type == "BIRT":
+                obj.birth = datetime.strptime(line[2].rstrip(), '%d %b %Y').date()
+            elif date_type == "DEAT":
+                obj.death = datetime.strptime(line[2].rstrip(), '%d %b %Y').date()
+        elif isinstance(obj, Family):
+            if date_type == "MARR":
+                obj.marriage = datetime.strptime(line[2].rstrip(), '%d %b %Y').date()
+            elif date_type == "DIV":
+                obj.divorce = datetime.strptime(line[2].rstrip(), '%d %b %Y').date()
+
+
 def process_individual(lines, index, new_individual):
     details = lines[index].split(" ", 2)
     while details[0] != "0" and index < len(lines):
@@ -45,17 +59,9 @@ def process_individual(lines, index, new_individual):
                 new_individual.spouse_id = details[2].rstrip()
             elif details[1] == "FAMC":
                 new_individual.child_id = details[2].rstrip()
-            elif details[1].rstrip() == "BIRT":
-                index = index + 1
-                details = lines[index].split(" ", 2)
-                if details[0] == "2" and details[1] == "DATE":
-                    new_individual.birth = datetime.strptime(details[2].rstrip(), '%d %b %Y').date()
-            elif details[1].rstrip() == "DEAT":
-                index = index + 1
-                details = lines[index].split(" ", 2)
-                if details[0] == "2" and details[1] == "DATE":
-                    new_individual.death = datetime.strptime(details[2].rstrip(), '%d %b %Y').date()
-        index = index + 1
+            elif details[1].rstrip() == "BIRT" or details[1].rstrip() == "DEAT":
+                process_date(new_individual, lines[index + 1].split(" ", 2), details[1].rstrip())
+        index += 1
         details = lines[index].split(" ", 2)
     individuals.append(new_individual)
 
@@ -70,19 +76,10 @@ def process_family(lines, index, new_family):
                 new_family.wife = details[2].rstrip()
             elif details[1] == "CHIL":
                 new_family.children.append(details[2].rstrip())
-            elif details[1].rstrip() == "MARR":
-                index = index + 1
-                details = lines[index].split(" ", 2)
-                if details[0] == "2" and details[1] == "DATE":
-                    new_family.marriage = datetime.strptime(details[2].rstrip(), '%d %b %Y').date()
-            elif details[1].rstrip() == "DIV":
-                index = index + 1
-                details = lines[index].split(" ", 2)
-                if details[0] == "2" and details[1] == "DATE":
-                    new_family.divorce = datetime.strptime(details[2].rstrip(), '%d %b %Y').date()
-        index = index + 1
+            elif details[1].rstrip() == "MARR" or details[1].rstrip() == "DIV":
+                process_date(new_family, lines[index + 1].split(" ", 2), details[1].rstrip())
+        index += 1
         details = lines[index].split(" ", 2)
-
     families.append(new_family)
 
 
@@ -90,14 +87,12 @@ def process_file(lines):
     index = 0
     while index < len(lines):
         line = lines[index].split(" ", 2)
-
         if len(line) == 3 and line[0] == "0":
             if line[2].rstrip() == "INDI":
                 process_individual(lines, index + 1, Individual(line[1].rstrip()))
             elif line[2].rstrip() == "FAM":
                 process_family(lines, index + 1, Family(line[1].rstrip()))
-
-        index = index + 1
+        index += 1
 
 
 def print_individuals():

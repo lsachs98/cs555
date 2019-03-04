@@ -1,3 +1,4 @@
+#How I ran/tested everything w/ the parser
 import datetime
 individuals = []
 families = []

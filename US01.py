@@ -1,8 +1,7 @@
-#US01, Dates Before Current Date
+
 temp = []
 stringgs = ''
 def monthsplit(date):
-
     for temp in date:
         temp = date.split()
         if(temp[1] == 'JAN'): 
@@ -34,6 +33,10 @@ def monthsplit(date):
         stringgs = str(temp[2]) + '-' + str(temp[1]) + '-' + str(temp[0])
         return stringgs
 
+#US01, dates before today
+dat = datetime.datetime.strptime(str(datetime.date.today()), '%Y-%m-%d')
+formattedDate = dat.strftime('%Y-%b-%d')
+validDates = True
 def datesBeforeToday(indData, famData): #Dates: birth, death, marriage, divorce
     individuals.sort(key=lambda x: int(x.i_id[1:]))
     families.sort(key=lambda x: int(x.f_id[1:]))
@@ -42,10 +45,12 @@ def datesBeforeToday(indData, famData): #Dates: birth, death, marriage, divorce
         if (b != None):
             if (formattedDate < b):
                 print(ind.get_name() + " born before current date. " + ind.get_birth())
+                validDates = False
         if (ind.get_death() != "NA"):
             d = monthsplit(ind.get_death())
             if (formattedDate < d):
                print(ind.get_name() + " died before current date.")
+               validDates = False
     for fam in famData:
         wifename = individuals[int(fam.get_wife()[1:]) - 1].get_name()
         hubbyname = individuals[int(fam.get_husband()[1:]) - 1].get_name()
@@ -53,8 +58,13 @@ def datesBeforeToday(indData, famData): #Dates: birth, death, marriage, divorce
         if (m != None):
             if (formattedDate < m):
                 print(hubbyname + " " + wifename + " married before current date.")
+                validDates = False
         if (fam.get_divorce() != "NA"):
             dev = monthsplit(fam.get_divorce())
             if (formattedDate < dev):
                 print(hubbyname + " " + wifename + " divorced before current date.")
-
+                validDates = False
+    if(validDates == True):
+        print("All dates are valid in this GEDCOM file.")
+    else:
+        print("Not all dates are valid in this GEDCOM file.")

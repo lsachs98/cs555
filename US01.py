@@ -28,22 +28,25 @@ def monthsplit(date):
             temp[1] = '11'
         elif(temp[1] == 'DEC'): 
             temp[1] = '12'
-        if(temp[0] == '1' or temp[2] == '0' or temp[0] == '3' or temp[0] == '4' or temp[0] == '5' or temp[0] == '6' or temp[0] == '7' or temp[0] == '8' or temp[0] == '9'):
+        if(temp[0] == '1' or temp[0] == '2' or temp[0] == '3' or temp[0] == '4' or temp[0] == '5' or temp[0] == '6' or temp[0] == '7' or temp[0] == '8' or temp[0] == '9'):
           temp[0] = '0' + temp[0]
-        stringgs = str(temp[2]) + '-' + str(temp[1]) + '-' + str(temp[0])
+        stringgs = str(temp[2]) + str(temp[1]) + str(temp[0])
         return stringgs
 
 #US01, dates before today
 dat = datetime.datetime.strptime(str(datetime.date.today()), '%Y-%m-%d')
-formattedDate = dat.strftime('%Y-%b-%d')
+formattedDate = dat.strftime('%Y%m%d')
 validDates = True
 def datesBeforeToday(indData, famData): #Dates: birth, death, marriage, divorce
     individuals.sort(key=lambda x: int(x.i_id[1:]))
     families.sort(key=lambda x: int(x.f_id[1:]))
+    validDates = True
     for ind in indData:
         b = monthsplit(ind.get_birth())
         if (b != None):
             if (formattedDate < b):
+                #print(b)
+                #print(formattedDate)
                 print(ind.get_name() + " born before current date. " + ind.get_birth())
                 validDates = False
         if (ind.get_death() != "NA"):

@@ -97,6 +97,31 @@ def user_story_09(indi):
     return False
 
 
+def user_story_11(indi):
+    # Find all marriages for an individual
+    marriages = []
+    for fam in families:
+        if indi.i_id == fam.husband or indi.i_id == fam.wife:
+            marriages.append(fam)
+
+    # If they are in less than 2 families, there can be no bigotry
+    if len(marriages) < 2:
+        return False
+
+    for i in range(len(marriages) - 1):
+        if marriages[i].divorce is None and marriages[i + 1].divorce is None:  # Neither family is divorced so bigotry
+            # TODO account for deaths?
+            return True
+        elif marriages[i].divorce is None:  # Was Family A created before Family B divorce?
+            return datetime.now().date() <= marriages[i + 1].marriage or marriages[i].marriage < marriages[
+                i + 1].divorce
+        elif marriages[i + 1].divorce is None:  # Was Family B created before Family A divorce?
+            return marriages[i + 1].marriage < marriages[i].divorce or datetime.now().date() <= marriages[i].marriage
+        else:  # Did both marriages happen after divorces?
+            return marriages[i].divorce <= marriages[i + 1].marriage or marriages[i + 1].divorce <= marriages[
+                i].marriage
+
+
 def process_family(lines, index, new_family):
     details = lines[index].split(" ", 2)
     while details[0] != "0" and index < len(lines):
@@ -135,7 +160,8 @@ def print_individuals():
         print("\tName: {}".format(ind.name))
         print("\tSex: {}".format(ind.sex))
         print("\tBirthday: {}".format(datetime.strftime(ind.birth, '%d %b %Y')))
-        print("\tBirth before either Parent's Death: {}".format(user_story_09(ind) if ind.child_id is not None else "NA"))
+        print(
+            "\tBirth before either Parent's Death: {}".format(user_story_09(ind) if ind.child_id is not None else "NA"))
         print("\tAlive: {}".format(True if ind.death is None else False))
         print("\tDeath: {}".format(datetime.strftime(ind.death, '%d %b %Y') if ind.death is not None else "NA"))
         print("\tChildren: {}".format(ind.child_id))

@@ -47,4 +47,4 @@ class TestUserStory09(TestCase):
         self.assertEqual(get_wife("I3"), individuals[2])
 
     def test_user_story_09(self):
-        self.assertTrue(individuals[0])
+        self.assertTrue(user_story_09(individuals[0]), individuals[0])

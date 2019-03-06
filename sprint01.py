@@ -172,6 +172,7 @@ dat = datetime.datetime.strptime(str(datetime.date.today()), '%Y-%m-%d')
 formattedDate = dat.strftime('%Y%m%d')
 validDates = True
 def datesBeforeToday(indData, famData): #Dates: birth, death, marriage, divorce
+    print("-------- Testing USER STORY 01. DATES BEFORE TODAY -------")
     individuals.sort(key=lambda x: int(x.i_id[1:]))
     families.sort(key=lambda x: int(x.f_id[1:]))
     validDates = True
@@ -210,6 +211,7 @@ def datesBeforeToday(indData, famData): #Dates: birth, death, marriage, divorce
 dates = []
 validMarriage = True
 def birthBeforeMarriage(indList, famData):
+    print("-------- Testing USER STORY 02. BIRTH BEFORE MARRIAGE -------")
     individuals.sort(key=lambda x: int(x.i_id[1:]))
     families.sort(key=lambda x: int(x.f_id[1:]))
     validMarriage = True
@@ -223,16 +225,13 @@ def birthBeforeMarriage(indList, famData):
             if (m != None):
                 if(wifename == personname or hubbyname == personname):
                     if (m < b):
-                        print("---HOUSTON WE HAVE A PROBLEM---")
-                        print(personname)
+                        #print("---HOUSTON WE HAVE A PROBLEM---")
+                        print(personname + " has an incorrect birth and/or marriage date.")
                         print("Birth is: " + ind.get_birth() + " and Marriage is: " + fam.get_marriage())
                         validMarriage = False
     if(validMarriage == True): print("All birth dates were correct")
     else: print("One or more birth/marriage dates were incorrect.")
     return validMarriage
-
-        
-
 
 def print_individuals():
     individuals.sort(key=lambda x: int(x.i_id[1:]))
@@ -269,4 +268,5 @@ def main():
     
 if __name__ == '__main__':
     main()
+
 

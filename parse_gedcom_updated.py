@@ -1,4 +1,5 @@
 from datetime import datetime
+
 individuals = []
 families = []
 
@@ -206,7 +207,6 @@ def user_story_11(indi):
                 return marriages[i].divorce <= marriages[j].marriage or marriages[j].divorce <= marriages[
                     i].marriage
 
-
 def print_individuals():
     print("--- Individuals ---")
     for ind in individuals:
@@ -219,7 +219,6 @@ def print_individuals():
         print("\tChildren: {}".format(ind.child_id))
         print("\tSpouse: {}".format(ind.spouse_id))
     print()
-
 
 def print_families():
     print("--- Families ---")

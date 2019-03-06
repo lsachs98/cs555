@@ -109,17 +109,42 @@ def user_story_11(indi):
         return False
 
     for i in range(len(marriages) - 1):
-        if marriages[i].divorce is None and marriages[i + 1].divorce is None:  # Neither family is divorced so bigotry
-            # TODO account for deaths?
-            return True
-        elif marriages[i].divorce is None:  # Was Family A created before Family B divorce?
-            return datetime.now().date() <= marriages[i + 1].marriage or marriages[i].marriage < marriages[
-                i + 1].divorce
-        elif marriages[i + 1].divorce is None:  # Was Family B created before Family A divorce?
-            return marriages[i + 1].marriage < marriages[i].divorce or datetime.now().date() <= marriages[i].marriage
-        else:  # Did both marriages happen after divorces?
-            return marriages[i].divorce <= marriages[i + 1].marriage or marriages[i + 1].divorce <= marriages[
-                i].marriage
+        for j in range(i + 1, len(marriages)):
+            if marriages[i].divorce is None and marriages[j].divorce is None:  # Neither family is divorced
+                if indi.sex == "M":  # check if either wife died
+                    if get_wife(marriages[i].wife).death is not None:
+                        return get_wife(marriages[i].wife).death <= marriages[j].marriage
+                    elif get_wife(marriages[j].wife).death is not None:
+                        return get_wife(marriages[j].wife).death <= marriages[i].marriage
+                else:  # check if either husband died
+                    if get_husband(marriages[i].husband).death is not None:
+                        return get_husband(marriages[i].husband).death <= marriages[j].marriage
+                    elif get_husband(marriages[j].husband).death is not None:
+                        return get_husband(marriages[j].husband).death <= marriages[i].marriage
+                return True  # both wives alive
+            elif marriages[i].divorce is None:  # Was Family A created before Family B divorce/death?
+                if indi.sex == "M" and get_wife(marriages[i].wife).death is not None:
+                    return get_wife(marriages[i].wife).death <= marriages[j].marriage or marriages[i].marriage < \
+                           marriages[j].divorce
+                elif indi.sex == "F" and get_husband(marriages[i].husband).death is not None:
+                    return get_husband(marriages[i].husband).death <= marriages[j].marriage or marriages[i].marriage < \
+                           marriages[j].divorce
+                else:
+                    return datetime.now().date() <= marriages[j].marriage or marriages[i].marriage < marriages[
+                        j].divorce
+            elif marriages[j].divorce is None:  # Was Family B created before Family A divorce?
+                if indi.sex == "M" and get_wife(marriages[j].wife).death is not None:
+                    return get_wife(marriages[j].wife).death <= marriages[i].marriage or marriages[j].marriage < \
+                           marriages[i].divorce
+                elif indi.sex == "F" and get_husband(marriages[j].husband).death is not None:
+                    return get_husband(marriages[j].husband).death <= marriages[i].marriage or marriages[
+                        j].marriage < marriages[i].divorce
+                else:
+                    return marriages[j].marriage < marriages[i].divorce or datetime.now().date() <= marriages[
+                        i].marriage
+            else:  # Did both marriages happen after divorces?
+                return marriages[i].divorce <= marriages[j].marriage or marriages[j].divorce <= marriages[
+                    i].marriage
 
 
 def process_family(lines, index, new_family):

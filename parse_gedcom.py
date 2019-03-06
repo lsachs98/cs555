@@ -1,270 +1,177 @@
-#Compiles with both US01 and US02, both have been tested
-import datetime
+# Compiles with both US01 and US02, both have been tested
+from datetime import datetime
 individuals = []
 families = []
 
 class Individual:
     def __init__(self, i_id):
         self.i_id = i_id
-        self.name = ""
-        self.sex = ""
-        self.spouse_id = "NA"
-        self.child_id = "NA"
-        self.birth = ""
-        self.death = "NA"
-    def set_name(self, name):
-        self.name = name
-    def set_sex(self, sex):
-        self.sex = sex
-    def set_spouse(self, family_id):
-        self.spouse_id = family_id
-    def set_child(self, family_id):
-        self.child_id = family_id
-    def set_birth(self, birth):
-        self.birth = birth
-    def set_death(self, death):
-        self.death = death
-    def get_id(self):
-        return self.i_id
-    def get_name(self):
-        return self.name
-    def get_sex(self):
-        return self.sex
-    def get_spouse(self):
-        return self.spouse_id
-    def get_child(self):
-        return self.child_id
-    def get_birth(self):
-        return self.birth
-    def get_death(self):
-        return self.death
+        self.name = None
+        self.sex = None
+        self.spouse_id = None
+        self.child_id = None
+        self.birth = None
+        self.death = None
+
 class Family:
     def __init__(self, f_id):
         self.f_id = f_id
-        self.marriage = ""
-        self.divorce = "NA"
-        self.husband = ""
-        self.wife = ""
+        self.marriage = None
+        self.divorce = None
+        self.husband = None
+        self.wife = None
         self.children = []
-    def set_marriage(self, marriage):
-        self.marriage = marriage
-    def set_divorce(self, divorce):
-        self.divorce = divorce
-    def set_husband(self, husband):
-        self.husband = husband
-    def set_wife(self, wife):
-        self.wife = wife
-    def add_child(self, child):
-        self.children.append(child)
-    def get_id(self):
-        return self.f_id
-    def get_marriage(self):
-        return self.marriage
-    def get_divorce(self):
-        return self.divorce
-    def get_husband(self):
-        return self.husband
-    def get_wife(self):
-        return self.wife
-    def get_children(self):
-        return self.children
+
 def read_file():
     with open("test0.ged") as file:
         lines = file.readlines()
     file.close()
+    return lines
+
+def process_date(obj, line, date_type):
+    if line[0] == "2" and line[1] == "DATE":
+        if isinstance(obj, Individual):
+            if date_type == "BIRT":
+                obj.birth = datetime.strptime(line[2].rstrip(), '%d %b %Y').date()
+            elif date_type == "DEAT":
+                obj.death = datetime.strptime(line[2].rstrip(), '%d %b %Y').date()
+        elif isinstance(obj, Family):
+            if date_type == "MARR":
+                obj.marriage = datetime.strptime(line[2].rstrip(), '%d %b %Y').date()
+            elif date_type == "DIV":
+                obj.divorce = datetime.strptime(line[2].rstrip(), '%d %b %Y').date()
+
+def process_individual(lines, index, new_individual):
+    details = lines[index].split(" ", 2)
+    while details[0] != "0" and index < len(lines):
+        if details[0] == "1":
+            if details[1] == "NAME":
+                new_individual.name = details[2].rstrip()
+            elif details[1] == "SEX":
+                new_individual.sex = details[2].rstrip()
+            elif details[1] == "FAMS":
+                new_individual.spouse_id = details[2].rstrip()
+            elif details[1] == "FAMC":
+                new_individual.child_id = details[2].rstrip()
+            elif details[1].rstrip() == "BIRT" or details[1].rstrip() == "DEAT":
+                process_date(new_individual, lines[index + 1].split(" ", 2), details[1].rstrip())
+        index += 1
+        details = lines[index].split(" ", 2)
+    individuals.append(new_individual)
+
+def process_family(lines, index, new_family):
+    details = lines[index].split(" ", 2)
+    while details[0] != "0" and index < len(lines):
+        if details[0] == "1":
+            if details[1] == "HUSB":
+                new_family.husband = details[2].rstrip()
+            elif details[1] == "WIFE":
+                new_family.wife = details[2].rstrip()
+            elif details[1] == "CHIL":
+                new_family.children.append(details[2].rstrip())
+            elif details[1].rstrip() == "MARR" or details[1].rstrip() == "DIV":
+                process_date(new_family, lines[index + 1].split(" ", 2), details[1].rstrip())
+        index += 1
+        details = lines[index].split(" ", 2)
+    families.append(new_family)
+
+def process_file(lines):
     index = 0
     while index < len(lines):
         line = lines[index].split(" ", 2)
-        if len(line) == 3:
-            if line[0] == "0" and line[2].rstrip() == "INDI":
-                new_individual = Individual(line[1].rstrip())
-                index = index + 1
-                details = lines[index].split(" ", 2)
-                while details[0] != "0" and index < len(lines):
-                    if details[0] == "1":
-                        if details[1] == "NAME":
-                            new_individual.set_name(details[2].rstrip())
-                        if details[1] == "SEX":
-                            new_individual.set_sex(details[2].rstrip())
-                        if details[1] == "FAMS":
-                            new_individual.set_spouse(details[2].rstrip())
-                        if details[1] == "FAMC":
-                            new_individual.set_child(details[2].rstrip())
-                        if details[1].rstrip() == "BIRT":
-                            index = index + 1
-                            details = lines[index].split(" ", 2)
-                            if details[0] == "2" and details[1] == "DATE":
-                                new_individual.set_birth(details[2].rstrip())
-                        if details[1].rstrip() == "DEAT":
-                            index = index + 1
-                            details = lines[index].split(" ", 2)
-                            if details[0] == "2" and details[1] == "DATE":
-                                new_individual.set_death(details[2].rstrip())
-                    index = index + 1
-                    details = lines[index].split(" ", 2)
-                individuals.append(new_individual)
-                index = index - 1
-            if line[0] == "0" and line[2].rstrip() == "FAM":
-                new_family = Family(line[1].rstrip())
-                index = index + 1
-                details = lines[index].split(" ", 2)
-                while details[0] != "0" and index < len(lines):
-                    if details[0] == "1":
-                        if details[1] == "HUSB":
-                            new_family.set_husband(details[2].rstrip())
-                        if details[1] == "WIFE":
-                            new_family.set_wife(details[2].rstrip())
-                        if details[1] == "CHIL":
-                            new_family.add_child(details[2].rstrip())
-                        if details[1].rstrip() == "MARR":
-                            index = index + 1
-                            details = lines[index].split(" ", 2)
-                            if details[0] == "2" and details[1] == "DATE":
-                                new_family.set_marriage(details[2].rstrip())
-                        if details[1].rstrip() == "DIV":
-                            index = index + 1
-                            details = lines[index].split(" ", 2)
-                            if details[0] == "2" and details[1] == "DATE":
-                                new_family.set_divorce(details[2].rstrip())
-                    index = index + 1
-                    details = lines[index].split(" ", 2)
-                families.append(new_family)
-                index = index - 1
-        index = index + 1
-
-
-temp = []
-stringgs = ''
-def monthsplit(date):
-    for temp in date:
-        temp = date.split()
-        if(temp[1] == 'JAN'): 
-            temp[1] = '01'
-        elif(temp[1] == 'FEB'): 
-            temp[1] = '02'
-        elif(temp[1] == 'MAR'): 
-            temp[1] = '03'
-        elif(temp[1] == 'APR'): 
-            temp[1] = '04'
-        elif(temp[1] == 'MAY'): 
-            temp[1] = '05'
-        elif(temp[1] == 'JUN'): 
-            temp[1] = '06'
-        elif(temp[1] == 'JUL'): 
-            temp[1] = '07'
-        elif(temp[1] == 'AUG'): 
-            temp[1] = '08'
-        elif(temp[1] == 'SEP'): 
-            temp[1] = '09'
-        elif(temp[1] == 'OCT'): 
-            temp[1] = '10'
-        elif(temp[1] == 'NOV'): 
-            temp[1] = '11'
-        elif(temp[1] == 'DEC'): 
-            temp[1] = '12'
-        if(temp[0] == '1' or temp[0] == '2' or temp[0] == '3' or temp[0] == '4' or temp[0] == '5' or temp[0] == '6' or temp[0] == '7' or temp[0] == '8' or temp[0] == '9'):
-          temp[0] = '0' + temp[0]
-        stringgs = str(temp[2]) + str(temp[1]) + str(temp[0])
-        return stringgs
-
-#US01, dates before today
-dat = datetime.datetime.strptime(str(datetime.date.today()), '%Y-%m-%d')
-formattedDate = dat.strftime('%Y%m%d')
-validDates = True
-def datesBeforeToday(indData, famData): #Dates: birth, death, marriage, divorce
-    print("-------- Testing USER STORY 01. DATES BEFORE TODAY -------")
+        if len(line) == 3 and line[0] == "0":
+            if line[2].rstrip() == "INDI":
+                process_individual(lines, index + 1, Individual(line[1].rstrip()))
+            elif line[2].rstrip() == "FAM":
+                process_family(lines, index + 1, Family(line[1].rstrip()))
+        index += 1
     individuals.sort(key=lambda x: int(x.i_id[1:]))
     families.sort(key=lambda x: int(x.f_id[1:]))
+
+# US01, dates before today
+def user_story_01():  # Dates: birth, death, marriage, divorce
+    print("-------- Testing USER STORY 01. DATES BEFORE TODAY -------")
     validDates = True
-    for ind in indData:
-        b = monthsplit(ind.get_birth())
-        if (b != None):
-            if (formattedDate < b):
-                #print(b)
-                #print(formattedDate)
-                print(ind.get_name() + " born before current date. " + ind.get_birth())
-                validDates = False
-        if (ind.get_death() != "NA"):
-            d = monthsplit(ind.get_death())
-            if (formattedDate < d):
-               print(ind.get_name() + " died before current date.")
-               validDates = False
-    for fam in famData:
-        wifename = individuals[int(fam.get_wife()[1:]) - 1].get_name()
-        hubbyname = individuals[int(fam.get_husband()[1:]) - 1].get_name()
-        m = monthsplit(fam.get_marriage())
-        if (m != None):
-            if (formattedDate < m):
-                print(hubbyname + " " + wifename + " married before current date.")
-                validDates = False
-        if (fam.get_divorce() != "NA"):
-            dev = monthsplit(fam.get_divorce())
-            if (formattedDate < dev):
-                print(hubbyname + " " + wifename + " divorced before current date.")
-                validDates = False
-    if(validDates == True):
+    for ind in individuals:
+        if ind.birth is not None and ind.birth > datetime.now().date():
+            print(ind.name + " born before current date. " + datetime.strftime(ind.birth, '%d %b %Y'))
+            validDates = False
+        if ind.death is not None and ind.death > datetime.now().date():
+            print(ind.name() + " died before current date." + datetime.strftime(ind.death, '%d %b %Y'))
+            validDates = False
+    for fam in families:
+        wifename = individuals[int(fam.wife[1:]) - 1].name
+        hubbyname = individuals[int(fam.husband[1:]) - 1].name
+        if fam.marriage is not None and fam.marriage > datetime.now().date():
+            print(hubbyname + " " + wifename + " married before current date." + datetime.strftime(fam.marriage, '%d %b %Y'))
+            validDates = False
+        if fam.divorce is not None and fam.divorce > datetime.now().date():
+            print(hubbyname + " " + wifename + " divorced before current date." + datetime.strftime(fam.divorce, '%d %b %Y'))
+            validDates = False
+
+    if validDates:
         print("All dates are valid in this GEDCOM file.")
     else:
         print("Not all dates are valid in this GEDCOM file.")
 
-#US02, birth before marriage
+# US02, birth before marriage
 dates = []
 validMarriage = True
-def birthBeforeMarriage(indList, famData):
+def user_story_02():
     print("-------- Testing USER STORY 02. BIRTH BEFORE MARRIAGE -------")
-    individuals.sort(key=lambda x: int(x.i_id[1:]))
-    families.sort(key=lambda x: int(x.f_id[1:]))
     validMarriage = True
-    for fam in famData:
-        wifename = individuals[int(fam.get_wife()[1:]) - 1].get_name()
-        hubbyname = individuals[int(fam.get_husband()[1:]) - 1].get_name()
-        m = monthsplit(fam.get_marriage())
-        for ind in indList:
-            personname = ind.get_name()
-            b = monthsplit(ind.get_birth())
-            if (m != None):
-                if(wifename == personname or hubbyname == personname):
-                    if (m < b):
-                        #print("---HOUSTON WE HAVE A PROBLEM---")
+    for fam in families:
+        wifename = individuals[int(fam.wife[1:]) - 1].name
+        hubbyname = individuals[int(fam.husband[1:]) - 1].name
+        for ind in individuals:
+            personname = ind.name
+            if (fam.marriage != None):
+                if (wifename == personname or hubbyname == personname):
+                    if (fam.marriage < ind.birth):
                         print(personname + " has an incorrect birth and/or marriage date.")
-                        print("Birth is: " + ind.get_birth() + " and Marriage is: " + fam.get_marriage())
+                        print("Birth is: " + datetime.strftime(ind.birth, '%d %b %Y') + " and Marriage is: " + datetime.strftime(fam.marriage, '%d %b %Y'))
                         validMarriage = False
-    if(validMarriage == True): print("All birth dates were correct")
-    else: print("One or more birth/marriage dates were incorrect.")
+    if (validMarriage == True):
+        print("All birth dates were correct")
+    else:
+        print("One or more birth/marriage dates were incorrect.")
     return validMarriage
 
+
 def print_individuals():
-    individuals.sort(key=lambda x: int(x.i_id[1:]))
     print("--- Individuals ---")
     for ind in individuals:
-        print("{}:".format(ind.get_id()))
-        print("\tName: {}".format(ind.get_name()))
-        print("\tSex: {}".format(ind.get_sex()))
-        print("\tBirthday: {}".format(ind.get_birth()))
-        print("\tAlive: {}".format(True if ind.get_death() == "NA" else False))
-        print("\tDeath: {}".format(ind.get_death()))
-        print("\tChildren: {}".format(ind.get_child()))
-        print("\tSpouse: {}".format(ind.get_spouse()))
+        print("{}:".format(ind.i_id))
+        print("\tName: {}".format(ind.name))
+        print("\tSex: {}".format(ind.sex))
+        print("\tBirthday: {}".format(datetime.strftime(ind.birth, '%d %b %Y')))
+        print("\tAlive: {}".format(True if ind.death is None else False))
+        print("\tDeath: {}".format(datetime.strftime(ind.death, '%d %b %Y') if ind.death is not None else "NA"))
+        print("\tChildren: {}".format(ind.child_id))
+        print("\tSpouse: {}".format(ind.spouse_id))
+    print()
+
+
 def print_families():
-    families.sort(key=lambda x: int(x.f_id[1:]))
-    print("\n--- Families ---")
+    print("--- Families ---")
     for fam in families:
-        print("{}:".format(fam.get_id()))
-        print("\tMarried: {}".format(fam.get_marriage()))
-        print("\tDivorced: {}".format(fam.get_divorce()))
-        print("\tHusband Id: {}".format(fam.get_husband()))
-        print("\tHusband Name: {}".format(individuals[int(fam.get_husband()[1:]) - 1].get_name()))
-        print("\tWife Id: {}".format(fam.get_wife()))
-        print("\tWife Name: {}".format(individuals[int(fam.get_wife()[1:]) - 1].get_name()))
-        print("\tChildren: {}".format(", ".join(fam.get_children())))
+        print("{}:".format(fam.f_id))
+        print("\tMarried: {}".format(datetime.strftime(fam.marriage, '%d %b %Y') if fam.marriage is not None else "NA"))
+        print("\tDivorced: {}".format(datetime.strftime(fam.divorce, '%d %b %Y') if fam.divorce is not None else "NA"))
+        print("\tHusband Id: {}".format(fam.husband))
+        print("\tHusband Name: {}".format(individuals[int(fam.husband[1:]) - 1].name))
+        print("\tWife Id: {}".format(fam.wife))
+        print("\tWife Name: {}".format(individuals[int(fam.wife[1:]) - 1].name))
+        print("\tChildren: {}".format(", ".join(fam.children)))
+        print()
 
 def main():
-    read_file()
+    process_file(read_file())
     print_individuals()
-    #print()
     print_families()
-    datesBeforeToday(individuals, families)
-    birthBeforeMarriage(individuals, families)
-    
+    user_story_01()
+    user_story_02()
+
+
 if __name__ == '__main__':
     main()

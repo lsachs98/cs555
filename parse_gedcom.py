@@ -1,3 +1,4 @@
+#Includes US03 and US04 for sprint 2
 from datetime import datetime
 individuals = []
 families = []
@@ -87,53 +88,6 @@ def process_file(lines):
     individuals.sort(key=lambda x: int(x.i_id[1:]))
     families.sort(key=lambda x: int(x.f_id[1:]))
 
-# US01, dates before today
-def user_story_01():  # Dates: birth, death, marriage, divorce
-    print("-------- Testing USER STORY 01. DATES BEFORE TODAY -------")
-    validDates = True
-    for ind in individuals:
-        if ind.birth is not None and ind.birth > datetime.now().date():
-            print(ind.name + " born before current date. " + datetime.strftime(ind.birth, '%d %b %Y'))
-            validDates = False
-        if ind.death is not None and ind.death > datetime.now().date():
-            print(ind.name + " died before current date." + datetime.strftime(ind.death, '%d %b %Y'))
-            validDates = False
-    for fam in families:
-        wifename = individuals[int(fam.wife[1:]) - 1].name
-        hubbyname = individuals[int(fam.husband[1:]) - 1].name
-        if fam.marriage is not None and fam.marriage > datetime.now().date():
-            print(hubbyname + " " + wifename + " married before current date." + datetime.strftime(fam.marriage, '%d %b %Y'))
-            validDates = False
-        if fam.divorce is not None and fam.divorce > datetime.now().date():
-            print(hubbyname + " " + wifename + " divorced before current date." + datetime.strftime(fam.divorce, '%d %b %Y'))
-            validDates = False
-    if validDates:
-        print("All dates are valid in this GEDCOM file.")
-    else:
-        print("Not all dates are valid in this GEDCOM file.")
-
-# US02, birth before marriage
-dates = []
-validMarriage = True
-def user_story_02():
-    print("-------- Testing USER STORY 02. BIRTH BEFORE MARRIAGE -------")
-    validMarriage = True
-    for fam in families:
-        wifename = individuals[int(fam.wife[1:]) - 1].name
-        hubbyname = individuals[int(fam.husband[1:]) - 1].name
-        for ind in individuals:
-            personname = ind.name
-            if (fam.marriage != None):
-                if (wifename == personname or hubbyname == personname):
-                    if (fam.marriage < ind.birth):
-                        print(personname + " has an incorrect birth and/or marriage date.")
-                        print("Birth is: " + datetime.strftime(ind.birth, '%d %b %Y') + " and Marriage is: " + datetime.strftime(fam.marriage, '%d %b %Y'))
-                        validMarriage = False
-    if (validMarriage == True):
-        print("All birth dates were correct")
-    else:
-        print("One or more birth/marriage dates were incorrect.")
-    return validMarriage
 
 #US04 Marriage before divorce
 def user_story_04():
@@ -274,8 +228,6 @@ def main():
     process_file(read_file())
     print_individuals()
     print_families()
-    user_story_01()
-    user_story_02()
     user_story_04()
     user_story_05()
 

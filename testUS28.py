@@ -1,4 +1,5 @@
 import unittest
+from pprint import pprint
 from project03 import *
 from US_28 import *
 
@@ -69,6 +70,7 @@ class Test(unittest.TestCase):
 		child_b_two.set_name("Lauren Sachs")
 		child_b_two.set_birth("28 AUG 1998")
 		family_b.add_child(child_b_two)
+		sorted_kids = order_children_by_age([family_a, family_b])
 		assert("@I1@" == sorted_kids[0][0])
 		assert("@I2@" == sorted_kids[0][1])
 		assert("@I3@" == sorted_kids[1][0])

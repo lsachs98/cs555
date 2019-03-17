@@ -66,12 +66,12 @@ def process_individual(lines, index, new_individual):
     individuals.append(new_individual)
 
 
-def get_husband_id(indi):
-    return families[int(indi.child_id[1:]) - 1].husband
+def get_husband_id(ind):
+    return families[int(ind.child_id[1:]) - 1].husband
 
 
-def get_wife_id(indi):
-    return families[int(indi.child_id[1:]) - 1].wife
+def get_wife_id(ind):
+    return families[int(ind.child_id[1:]) - 1].wife
 
 
 def get_husband(husband_id):
@@ -82,69 +82,163 @@ def get_wife(wife_id):
     return individuals[int(wife_id[1:]) - 1]
 
 
-def user_story_09(indi):
-    husband_id = get_husband_id(indi)  # get family's husband id
-    wife_id = get_wife_id(indi)  # get family's wife id
-    husband = get_husband(husband_id)  # get husband
-    wife = get_wife(wife_id)  # get wife
+def dates_before_today():  # US01: Dates (Birth, Death, Marriage, Divorce) Before Today
+    valid_dates = True
 
-    if husband.death is None and wife.death is None:  # if husband and wife are alive
-        return True
-    elif husband.death is not None and indi.birth < husband.death:  # if husband is dead
-        return True
-    elif wife.death is not None and indi.birth < wife.death:  # if wife is dead
-        return True
-    return False
+    for ind in individuals:
+        if ind.birth is not None and ind.birth > datetime.now().date():
+            print(ind.name + " born before current date. " + datetime.strftime(ind.birth, '%d %b %Y'))
+            valid_dates = False
+        if ind.death is not None and ind.death > datetime.now().date():
+            print(ind.get_name() + " died before current date." + datetime.strftime(ind.death, '%d %b %Y'))
+            valid_dates = False
 
-
-def user_story_11(indi):
-    # Find all marriages for an individual
-    marriages = []
     for fam in families:
-        if indi.i_id == fam.husband or indi.i_id == fam.wife:
-            marriages.append(fam)
+        wife_name = get_wife(fam.wife).name
+        hubby_name = get_husband(fam.husband).name
 
-    # If they are in less than 2 families, there can be no bigotry
-    if len(marriages) < 2:
-        return False
+        if fam.marriage is not None and fam.marriage > datetime.now().date():
+            print("%s %s married before current date, %s." % hubby_name, wife_name, datetime.strftime(fam.marriage,
+                                                                                                      '%d %b %Y'))
+            valid_dates = False
 
-    for i in range(len(marriages) - 1):
-        for j in range(i + 1, len(marriages)):
-            if marriages[i].divorce is None and marriages[j].divorce is None:  # Neither family is divorced
-                if indi.sex == "M":  # check if either wife died
-                    if get_wife(marriages[i].wife).death is not None:
-                        return get_wife(marriages[i].wife).death <= marriages[j].marriage
-                    elif get_wife(marriages[j].wife).death is not None:
-                        return get_wife(marriages[j].wife).death <= marriages[i].marriage
-                else:  # check if either husband died
-                    if get_husband(marriages[i].husband).death is not None:
-                        return get_husband(marriages[i].husband).death <= marriages[j].marriage
-                    elif get_husband(marriages[j].husband).death is not None:
-                        return get_husband(marriages[j].husband).death <= marriages[i].marriage
-                return True  # both wives alive
-            elif marriages[i].divorce is None:  # Was Family A created before Family B divorce/death?
-                if indi.sex == "M" and get_wife(marriages[i].wife).death is not None:
-                    return get_wife(marriages[i].wife).death <= marriages[j].marriage or marriages[i].marriage < \
-                           marriages[j].divorce
-                elif indi.sex == "F" and get_husband(marriages[i].husband).death is not None:
-                    return get_husband(marriages[i].husband).death <= marriages[j].marriage or marriages[i].marriage < \
-                           marriages[j].divorce
-                else:
-                    return datetime.now().date() <= marriages[j].marriage or marriages[i].marriage < marriages[
-                        j].divorce
-            elif marriages[j].divorce is None:  # Was Family B created before Family A divorce?
-                if indi.sex == "M" and get_wife(marriages[j].wife).death is not None:
-                    return get_wife(marriages[j].wife).death <= marriages[i].marriage or marriages[j].marriage < \
-                           marriages[i].divorce
-                elif indi.sex == "F" and get_husband(marriages[j].husband).death is not None:
-                    return get_husband(marriages[j].husband).death <= marriages[i].marriage or marriages[
-                        j].marriage < marriages[i].divorce
-                else:
-                    return marriages[j].marriage < marriages[i].divorce or datetime.now().date() <= marriages[
+        if fam.divorce is not None and fam.divorce > datetime.now().date():
+            print("%s %s divorced before current date." % hubby_name, wife_name, datetime.strftime(fam.divorce,
+                                                                                                   '%d %b %Y'))
+            valid_dates = False
+
+    if valid_dates:
+        print("All dates are valid in this GEDCOM file.")
+    else:
+        print("Not all dates are valid in this GEDCOM file.")
+
+
+def birth_before_marriage():  # US02: Birth Before Marriage
+    valid_marriage = True
+
+    for fam in families:
+        wife_name = get_wife(fam.wife).name
+        hubby_name = get_husband(fam.husband).name
+
+        for ind in individuals:
+            if fam.marriage is not None:
+                if wife_name == ind.name or hubby_name == ind.name and fam.marriage < ind.birth:
+                    print("%s has an incorrect birth and/or marriage date." % ind.name)
+                    print("Birth is: %s and Marriage is: %s" % (
+                        datetime.strftime(ind.birth, '%d %b %Y'), datetime.strftime(fam.marriage, '%d %b %Y')))
+                    valid_marriage = False
+
+    if valid_marriage:
+        print("All birth dates were correct")
+    else:
+        print("One or more birth/marriage dates were incorrect.")
+
+
+def birth_before_parents_death():  # US09: Birth Before Death of Parents
+    valid_birth = True
+
+    for ind in individuals:
+        husband_id = get_husband_id(ind)  # get family's husband id
+        wife_id = get_wife_id(ind)  # get family's wife id
+        husband = get_husband(husband_id)  # get husband
+        wife = get_wife(wife_id)  # get wife
+
+        if husband.death is None and wife.death is None:  # if husband and wife are alive
+            continue
+        elif husband.death is not None and wife.death is not None:  # if husband and wife are both dead
+            if ind.birth < husband.death and ind.birth < wife.death:
+                continue
+        elif husband.death is not None and ind.birth < husband.death:  # if husband is dead
+            continue
+        elif wife.death is not None and ind.birth < wife.death:  # if wife is dead
+            continue
+        else:
+            valid_birth = False
+            print("%s was born after death of parent(s)." % ind.name)
+
+    if valid_birth:
+        print("All birth dates were before parents' deaths")
+    else:
+        print("One or more birth dates were incorrect.")
+
+
+def no_bigamy():  # US11: No Bigamy
+    bigamy = False
+
+    for ind in individuals:
+        # Find all marriages for an individual
+        marriages = []
+        for fam in families:
+            if ind.i_id == fam.husband or ind.i_id == fam.wife:
+                marriages.append(fam)
+
+        # If they are in less than 2 families, there can be no bigotry
+        if len(marriages) < 2:
+            continue
+
+        for i in range(len(marriages) - 1):
+            for j in range(i + 1, len(marriages)):
+                if marriages[i].divorce is None and marriages[j].divorce is None:  # Neither family is divorced
+                    if ind.sex == "M":  # check if either wife died
+                        if get_wife(marriages[i].wife).death is not None and get_wife(marriages[i].wife).death >= \
+                                marriages[j].marriage:
+                            print("%s committed bigamy with %s and %s" % (
+                                ind.name, get_wife(marriages[i].wife).name, get_wife(marriages[j].wife).name))
+                            bigamy = True
+                        elif get_wife(marriages[j].wife).death is not None and get_wife(marriages[j].wife).death >= \
+                                marriages[i].marriage:
+                            print("%s committed bigamy with %s and %s" % (
+                                ind.name, get_wife(marriages[i].wife).name, get_wife(marriages[j].wife).name))
+                            bigamy = True
+                    else:  # check if either husband died
+                        if get_husband(marriages[i].husband).death is not None and get_husband(
+                                marriages[i].husband).death >= marriages[j].marriage:
+                            print("%s committed bigamy with %s and %s" % (
+                                ind.name, get_husband(marriages[i].husband).name,
+                                get_husband(marriages[j].husband).name))
+                            bigamy = True
+                        elif get_husband(marriages[j].husband).death is not None and get_husband(
+                                marriages[j].husband).death >= marriages[i].marriage:
+                            print("%s committed bigamy with %s and %s" % (
+                                ind.name, get_husband(marriages[i].husband).name,
+                                get_husband(marriages[j].husband).name))
+                            bigamy = True
+                elif marriages[i].divorce is not None and marriages[j].divorce is not None:  # Both families are divorced
+
+                elif marriages[i].divorce is None:  # Was Family A created before Family B divorce/death?
+                    if ind.sex == "M":
+                        if get_wife(marriages[i].wife).death is not None:
+                            if get_wife(marriages[i].wife).death >= marriages[j].marriage or marriages[i].marriage < \
+                               marriages[j].divorce:
+                                print("%s committed bigamy with %s and %s" % (
+                                ind.name, get_wife(marriages[i].wife).name, get_wife(marriages[j].wife).name))
+                            bigamy = True
+                    else:
+                        if get_husband(marriages[i].husband).death is not None:
+                            if get_husband(marriages[i].husband).death <= marriages[j].marriage or marriages[
+                            i].marriage < \
+                               marriages[j].divorce
+                    else:
+                        return datetime.now().date() <= marriages[j].marriage or marriages[i].marriage < marriages[
+                            j].divorce
+                elif marriages[j].divorce is None:  # Was Family B created before Family A divorce?
+                    if ind.sex == "M" and get_wife(marriages[j].wife).death is not None:
+                        return get_wife(marriages[j].wife).death <= marriages[i].marriage or marriages[j].marriage < \
+                               marriages[i].divorce
+                    elif ind.sex == "F" and get_husband(marriages[j].husband).death is not None:
+                        return get_husband(marriages[j].husband).death <= marriages[i].marriage or marriages[
+                            j].marriage < marriages[i].divorce
+                    else:
+                        return marriages[j].marriage < marriages[i].divorce or datetime.now().date() <= marriages[
+                            i].marriage
+                else:  # Did both marriages happen after divorces?
+                    return marriages[i].divorce <= marriages[j].marriage or marriages[j].divorce <= marriages[
                         i].marriage
-            else:  # Did both marriages happen after divorces?
-                return marriages[i].divorce <= marriages[j].marriage or marriages[j].divorce <= marriages[
-                    i].marriage
+
+    if bigamy:
+        print("There are bigamy cases in this GEDCOM file.")
+    else:
+        print("There are no bigamy cases in this GEDCOM file.")
 
 
 def process_family(lines, index, new_family):
@@ -185,8 +279,6 @@ def print_individuals():
         print("\tName: {}".format(ind.name))
         print("\tSex: {}".format(ind.sex))
         print("\tBirthday: {}".format(datetime.strftime(ind.birth, '%d %b %Y')))
-        print(
-            "\tBirth before either Parent's Death: {}".format(user_story_09(ind) if ind.child_id is not None else "NA"))
         print("\tAlive: {}".format(True if ind.death is None else False))
         print("\tDeath: {}".format(datetime.strftime(ind.death, '%d %b %Y') if ind.death is not None else "NA"))
         print("\tChildren: {}".format(ind.child_id))
@@ -212,6 +304,10 @@ def main():
     process_file(read_file())
     print_individuals()
     print_families()
+    dates_before_today()
+    birth_before_marriage()
+    birth_before_parents_death()
+    no_bigamy()
 
 
 if __name__ == '__main__':

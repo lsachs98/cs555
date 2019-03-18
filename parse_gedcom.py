@@ -137,6 +137,10 @@ def get_wife_id(ind):
     return families[int(ind.child_id[1:]) - 1].wife
 
 
+def get_individual(ind_id):
+    return individuals[int(ind_id[1:]) - 1]
+
+
 def get_husband(husband_id):
     return individuals[int(husband_id[1:]) - 1]
 
@@ -163,10 +167,12 @@ def check_bigamy_spouse_death(ind, marriage_a, marriage_b, bigamy):
             print_bigamy(ind, marriage_a, marriage_b)
             bigamy = True
     else:  # check if either husband died
-        if get_husband(marriage_a.husband).death is not None and get_husband(marriage_a.husband).death >= marriage_b.marriage:
+        if get_husband(marriage_a.husband).death is not None and get_husband(
+                marriage_a.husband).death >= marriage_b.marriage:
             print_bigamy(ind, marriage_a, marriage_b)
             bigamy = True
-        elif get_husband(marriage_b.husband).death is not None and get_husband(marriage_b.husband).death >= marriage_a.marriage:
+        elif get_husband(marriage_b.husband).death is not None and get_husband(
+                marriage_b.husband).death >= marriage_a.marriage:
             print_bigamy(ind, marriage_a, marriage_b)
             bigamy = True
 
@@ -189,7 +195,8 @@ def check_bigamy_divorce_spouse_death(ind, marriage_a, marriage_b, bigamy):
                 print_bigamy(ind, marriage_a, marriage_a)
                 bigamy = True
         else:
-            if marriage_b.divorce >= marriage_a.marriage or get_husband(marriage_a.husband).death >= marriage_b.marriage:
+            if marriage_b.divorce >= marriage_a.marriage or get_husband(
+                    marriage_a.husband).death >= marriage_b.marriage:
                 print_bigamy(ind, marriage_a, marriage_b)
                 bigamy = True
 
@@ -260,10 +267,8 @@ def birth_before_parents_death():  # US09: Birth Before Death of Parents
         if ind.child_id is None:
             continue
 
-        husband_id = get_husband_id(ind)  # get family's husband id
-        wife_id = get_wife_id(ind)  # get family's wife id
-        husband = get_husband(husband_id)  # get husband
-        wife = get_wife(wife_id)  # get wife
+        husband = get_husband(get_husband_id(ind))  # get husband
+        wife = get_wife(get_wife_id(ind))  # get wife
 
         if husband.death is None and wife.death is None:  # if husband and wife are alive
             continue
@@ -276,7 +281,7 @@ def birth_before_parents_death():  # US09: Birth Before Death of Parents
             continue
         else:
             valid_birth = False
-            print("%s was born after death of parent(s)." % ind.name)
+            print("{} was born after death of parent(s).".format(ind.name))
 
     if valid_birth:
         print("All birth dates were before parents' deaths")
@@ -315,6 +320,16 @@ def no_bigamy():  # US11: No Bigamy
         print("There are no bigamy cases in this GEDCOM file.")
 
 
+def order_children_by_age():  # US28: Order Siblings by Age
+    for fam in families:
+        if fam.children:
+            fam.children.sort(key=lambda child: get_individual(child).birth)
+
+
+def list_deceased():  # US29: List Deceased
+    return [ind for ind in individuals if ind.death is not None]
+
+
 def main():
     process_file(read_file())
     print_individuals()
@@ -323,6 +338,9 @@ def main():
     birth_before_marriage()
     birth_before_parents_death()
     no_bigamy()
+    for deceased in list_deceased():
+        print(deceased.i_id)
+    order_children_by_age()
 
 
 if __name__ == '__main__':

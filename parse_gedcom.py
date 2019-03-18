@@ -141,6 +141,10 @@ def get_individual(ind_id):
     return individuals[int(ind_id[1:]) - 1]
 
 
+def get_family(fam_id):
+    return families[int(fam_id[1:]) - 1]
+
+
 def get_husband(husband_id):
     return individuals[int(husband_id[1:]) - 1]
 
@@ -320,7 +324,15 @@ def no_bigamy():  # US11: No Bigamy
         print("There are no bigamy cases in this GEDCOM file.")
 
 
-def order_children_by_age():  # US28: Order Siblings by Age
+def parents_not_too_old():  # US12: Parents Not Too Old
+    pass
+
+
+def sibling_age_space():  # US13: Sibling Age Spacing
+    pass
+
+
+def order_children_by_age():  # US28: Order Siblings By Age
     for fam in families:
         if fam.children:
             fam.children.sort(key=lambda child: get_individual(child).birth)

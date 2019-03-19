@@ -324,8 +324,34 @@ def no_bigamy():  # US11: No Bigamy
         print("There are no bigamy cases in this GEDCOM file.")
 
 
+def get_age(ind):
+    return datetime.today().date().year - ind.birth.year - ((datetime.today().date().month, datetime.today().date().day)
+                                                            < (ind.birth.month, ind.birth.day))
+
+
 def parents_not_too_old():  # US12: Parents Not Too Old
-    pass
+    too_old = False
+
+    for fam in families:
+        if fam.children:
+            mom = get_individual(fam.wife)
+            dad = get_individual(fam.husband)
+            for child_id in fam.children:
+                child = get_individual(child_id)
+                if abs(get_age(mom) - get_age(child)) > 60 and abs(get_age(dad) - get_age(child)) > 80:
+                    print("{}'s parents, {} and {}, are too old.".format(child.name, mom.name, dad.name))
+                    too_old = True
+                elif abs(get_age(mom) - get_age(child)) > 60:
+                    print("{}'s mother, {}, is too old.".format(child.name, mom.name))
+                    too_old = True
+                elif abs(get_age(dad) - get_age(child)) > 80:
+                    print("{}'s father, {}, is too old.".format(child.name, dad.name))
+                    too_old = True
+
+    if too_old:
+        print("Some parents are too old in this GEDCOM file.")
+    else:
+        print("All parents are not too old in this GEDCOM file.")
 
 
 def sibling_age_space():  # US13: Sibling Age Spacing
@@ -350,6 +376,8 @@ def main():
     birth_before_marriage()
     birth_before_parents_death()
     no_bigamy()
+    parents_not_too_old()
+    # sibling_age_space()
     for deceased in list_deceased():
         print(deceased.i_id)
     order_children_by_age()

@@ -60,10 +60,10 @@ class TestUserStory11(TestCase):
         families.clear()
 
     def test_user_story_11_no_marriage(self):
-        self.assertFalse(user_story_11(individuals[0]), individuals[0])  # no marriage
+        self.assertFalse(no_bigamy(), individuals[0])  # no marriage
 
     def test_user_story_11_bigotry(self):
-        self.assertTrue(user_story_11(individuals[1]), individuals[1])  # bigotry
+        self.assertTrue(no_bigamy(), individuals[1])  # bigotry
 
     def test_user_story_11_one_divorce_no_bigotry(self):
-        self.assertFalse(user_story_11(individuals[2]), individuals[2])  # one divorce, no bigotry
+        self.assertFalse(no_bigamy(), individuals[2])  # one divorce, no bigotry

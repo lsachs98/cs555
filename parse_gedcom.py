@@ -355,6 +355,21 @@ def parents_not_too_old():  # US12: Parents Not Too Old
 
 
 def sibling_age_space():  # US13: Sibling Age Spacing
+    sibling_space = True
+    for fam in families:
+        if fam.children and len(fam.children) > 1:
+            for i in range(len(fam.children)):
+                for j in range(i + 1, len(fam.children)):
+                    if 2 < abs((get_individual(fam.children[i]).birth - get_individual(fam.children[j]).birth).days) < \
+                            243.3:
+                        print("{} and {} are not spaced properly.".format(get_individual(fam.children[i]).name,
+                                                                          get_individual(fam.children[j]).name))
+                        sibling_space = False
+
+    if sibling_space:
+        print("All sibling ages are spaced properly.")
+    else:
+        print("Some sibling ages are not spaced properly.")
     pass
 
 
@@ -377,9 +392,10 @@ def main():
     birth_before_parents_death()
     no_bigamy()
     parents_not_too_old()
-    # sibling_age_space()
+    sibling_age_space()
+    print("Deceased: ")
     for deceased in list_deceased():
-        print(deceased.i_id)
+        print(deceased.name)
     order_children_by_age()
 
 

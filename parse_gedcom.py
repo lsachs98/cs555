@@ -387,16 +387,16 @@ def main():
     process_file(read_file())
     print_individuals()
     print_families()
-    dates_before_today()
-    birth_before_marriage()
-    birth_before_parents_death()
-    no_bigamy()
-    parents_not_too_old()
-    sibling_age_space()
-    print("Deceased: ")
+    dates_before_today()  # US01
+    birth_before_marriage()  # US02
+    birth_before_parents_death()  # US09
+    no_bigamy()  # US11
+    parents_not_too_old()  # US12
+    sibling_age_space()  # US13
+    print("Deceased:", end=" ")  # US28
     for deceased in list_deceased():
-        print(deceased.name)
-    order_children_by_age()
+        print(deceased.name, sep=", ")
+    order_children_by_age()  # US29
 
 
 if __name__ == '__main__':

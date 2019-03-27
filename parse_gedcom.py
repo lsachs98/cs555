@@ -269,7 +269,7 @@ def birth_before_marriage():  # US02: Birth Before Marriage
         print("One or more birth/marriage dates were incorrect.")
 
 
-def marriage_before_divorce():  # US04 Marriage before divorce
+def marriage_before_divorce():  # US04: Marriage before divorce
     marbeforediv = True
     for fam in families:
         if fam.divorce is not None and fam.marriage is not None:
@@ -285,7 +285,7 @@ def marriage_before_divorce():  # US04 Marriage before divorce
         print("One or more marriage/divorce dates are incorrect.")
 
 
-def marriage_before_death():  # US05 Marriage before death
+def marriage_before_death():  # US05: Marriage before death
     marbeforedeat = True
     for fam in families:
         for ind in individuals:
@@ -421,6 +421,16 @@ def list_deceased():  # US29: List Deceased
     return [ind for ind in individuals if ind.death is not None]
 
 
+def list_living_married():  # US30: List Living Married
+    living_married = []
+
+    for person in individuals:
+        if person.spouse_id is not None and person.death is None:
+            living_married.append(person)
+
+    return living_married
+
+
 def main():
     process_file(read_file())
     print_individuals()
@@ -433,10 +443,13 @@ def main():
     no_bigamy()  # US11
     parents_not_too_old()  # US12
     sibling_age_space()  # US13
-    print("Deceased:", end=" ")  # US28
+    order_children_by_age()  # US28
+    print("Deceased:")  # US29
     for deceased in list_deceased():
-        print(deceased.name, sep=", ")
-    order_children_by_age()  # US29
+        print(deceased.name)
+    print("Living Married:")  # US30
+    for living in list_living_married():
+        print(living.name)
 
 
 if __name__ == '__main__':

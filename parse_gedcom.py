@@ -411,6 +411,14 @@ def sibling_age_space():  # US13: Sibling Age Spacing
     pass
 
 
+def no_marriage_to_descendants():  # US17: No Marriage to Descendants
+    pass
+
+
+def siblings_should_not_marry():  # US18: Siblings Should Not Marry
+    pass
+
+
 def order_children_by_age():  # US28: Order Siblings By Age
     for fam in families:
         if fam.children:
@@ -454,6 +462,8 @@ def main():
     no_bigamy()  # US11
     parents_not_too_old()  # US12
     sibling_age_space()  # US13
+    no_marriage_to_descendants()  # US17
+    siblings_should_not_marry()  # US18
     order_children_by_age()  # US28
     print("Deceased:")  # US29
     for deceased in list_deceased():

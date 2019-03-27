@@ -208,7 +208,7 @@ def check_bigamy_divorce_spouse_death(ind, marriage_a, marriage_b, bigamy):
 
 
 def check_bigamy_divorce(ind, marriage_a, marriage_b, bigamy):
-    if marriage_a.marriage <= marriage_b.divorce or marriage_b.marriage <= marriage_a.divorce:
+    if marriage_a.marriage > marriage_b.divorce or marriage_b.marriage <= marriage_a.divorce:
         print_bigamy(ind, marriage_a, marriage_b)
         bigamy = True
 

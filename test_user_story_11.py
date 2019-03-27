@@ -1,69 +1,146 @@
-from unittest import TestCase
+import unittest
 from parse_gedcom import *
+from io import StringIO
+from contextlib import redirect_stdout
 
 
-class TestUserStory11(TestCase):
+class TestUserStory11(unittest.TestCase):
     def setUp(self):
-        print(self._testMethodName)
         child = Individual("I1")
         child.name = "Mark /Rivers/"
         child.sex = "M"
         child.birth = datetime.strptime("21 APR 1987", "%d %b %Y").date()
         child.child_id = "F1"
-        individuals.append(child)
+
         hus = Individual("I2")
         hus.name = "Jason /Rivers/"
         hus.sex = "M"
         hus.birth = datetime.strptime("19 SEP 1960", "%d %b %Y").date()
         hus.spouse_id = "F1"
+
+        wife1 = Individual("I3")
+        wife1.name = "Abigail /Glute/"
+        wife1.sex = "F"
+        wife1.birth = datetime.strptime("3 OCT 1965", "%d %b %Y").date()
+        wife1.spouse_id = "F1"
+
+        wife2 = Individual("I4")
+        wife2.name = "Brittany /Spears/"
+        wife2.sex = "F"
+        wife2.birth = datetime.strptime("13 JUN 1985", "%d %b %Y").date()
+        wife2.spouse_id = "F2"
+
+        fam1 = Family("F1")
+        fam1.husband = "I2"
+        fam1.wife = "I3"
+        fam1.children.append("I1")
+        fam1.marriage = datetime.strptime("29 JUL 1986", "%d %b %Y").date()
+
+        fam2 = Family("F2")
+        fam2.husband = "I2"
+        fam2.wife = "I4"
+        fam2.children.append("I1")
+        fam2.marriage = datetime.strptime("17 DEC 2006", "%d %b %Y").date()
+
+        individuals.append(child)
         individuals.append(hus)
-        wife = Individual("I3")
-        wife.name = "Abigail /Glute/"
-        wife.sex = "F"
-        wife.birth = datetime.strptime("3 OCT 1965", "%d %b %Y").date()
-        wife.spouse_id = "F1"
-        individuals.append(wife)
-        wife = Individual("I4")
-        wife.name = "Brittany /Spears/"
-        wife.sex = "F"
-        wife.birth = datetime.strptime("13 JUN 1985", "%d %b %Y").date()
-        wife.spouse_id = "F2"
-        individuals.append(wife)
-        hus = Individual("I5")
-        hus.name = "Bruce /Wayne/"
-        hus.sex = "M"
-        hus.birth = datetime.strptime("27 FEB 1970", "%d %b %Y").date()
-        hus.spouse_id = "F3"
-        individuals.append(hus)
-        family = Family("F1")
-        family.husband = "I2"
-        family.wife = "I3"
-        family.children.append("I1")
-        family.marriage = datetime.strptime("29 JUL 1986", "%d %b %Y").date()
-        families.append(family)
-        family = Family("F2")
-        family.husband = "I2"
-        family.wife = "I4"
-        family.children.append("I1")
-        family.marriage = datetime.strptime("17 DEC 2006", "%d %b %Y").date()
-        families.append(family)
-        family = Family("F3")
-        family.husband = "I5"
-        family.wife = "I3"
-        family.children.append("I1")
-        family.marriage = datetime.strptime("17 DEC 1980", "%d %b %Y").date()
-        family.divorce = datetime.strptime("7 NOV 1983", "%d %b %Y").date()
-        families.append(family)
+        individuals.append(wife1)
+        individuals.append(wife2)
+
+        families.append(fam1)
+        families.append(fam2)
 
     def tearDown(self):
         individuals.clear()
         families.clear()
 
-    def test_user_story_11_no_marriage(self):
-        self.assertFalse(no_bigamy(), individuals[0])  # no marriage
+    def test_less_than_two_marriages(self):
+        capture = StringIO()
+        individuals.pop()
+        individuals.pop()
+        families.clear()
 
-    def test_user_story_11_bigotry(self):
-        self.assertTrue(no_bigamy(), individuals[1])  # bigotry
+        with redirect_stdout(capture):
+            no_bigamy()
 
-    def test_user_story_11_one_divorce_no_bigotry(self):
-        self.assertFalse(no_bigamy(), individuals[2])  # one divorce, no bigotry
+        self.assertIn("There are no bigamy cases in this GEDCOM file.", capture.getvalue().strip().split("\n"))
+
+    def test_no_divorce_spouse_death_pass(self):
+        capture = StringIO()
+        get_individual("I3").death = datetime.strptime("3 OCT 1988", "%d %b %Y").date()
+
+        with redirect_stdout(capture):
+            no_bigamy()
+
+        self.assertIn("There are no bigamy cases in this GEDCOM file.", capture.getvalue().strip().split("\n"))
+
+    def test_no_divorce_spouse_death_fail(self):
+        capture = StringIO()
+        get_individual("I3").death = datetime.strptime("3 OCT 2007", "%d %b %Y").date()
+
+        with redirect_stdout(capture):
+            no_bigamy()
+
+        self.assertIn("There are bigamy cases in this GEDCOM file.", capture.getvalue().strip().split("\n"))
+
+    def test_one_divorce_pass(self):
+        capture = StringIO()
+        get_family("F1").divorce = datetime.strptime("3 OCT 1990", "%d %b %Y").date()
+
+        with redirect_stdout(capture):
+            no_bigamy()
+
+        self.assertIn("There are no bigamy cases in this GEDCOM file.", capture.getvalue().strip().split("\n"))
+
+    def test_one_divorce_fail(self):
+        capture = StringIO()
+        get_family("F1").divorce = datetime.strptime("3 OCT 2007", "%d %b %Y").date()
+
+        with redirect_stdout(capture):
+            no_bigamy()
+
+        self.assertIn("There are bigamy cases in this GEDCOM file.", capture.getvalue().strip().split("\n"))
+
+    def test_one_divorce_spouse_death_pass(self):
+        capture = StringIO()
+        get_family("F1").divorce = datetime.strptime("3 OCT 1987", "%d %b %Y").date()
+        get_individual("I3").death = datetime.strptime("3 OCT 1988", "%d %b %Y").date()
+
+        with redirect_stdout(capture):
+            no_bigamy()
+
+        self.assertIn("There are no bigamy cases in this GEDCOM file.", capture.getvalue().strip().split("\n"))
+
+    def test_one_divorce_spouse_death_fail(self):
+        capture = StringIO()
+        get_family("F1").divorce = datetime.strptime("3 OCT 2007", "%d %b %Y").date()
+        get_individual("I3").death = datetime.strptime("3 OCT 2009", "%d %b %Y").date()
+
+        with redirect_stdout(capture):
+            no_bigamy()
+
+        self.assertIn("There are bigamy cases in this GEDCOM file.", capture.getvalue().strip().split("\n"))
+
+    def test_both_divorce_spouse_death_pass(self):
+        capture = StringIO()
+        get_family("F1").divorce = datetime.strptime("3 OCT 1997", "%d %b %Y").date()
+        get_family("F2").divorce = datetime.strptime("3 OCT 2014", "%d %b %Y").date()
+
+        with redirect_stdout(capture):
+            no_bigamy()
+
+        self.assertIn("There are no bigamy cases in this GEDCOM file.", capture.getvalue().strip().split("\n"))
+
+    def test_both_divorce_spouse_death_fail(self):
+        capture = StringIO()
+        get_family("F1").divorce = datetime.strptime("3 OCT 2007", "%d %b %Y").date()
+        get_family("F2").divorce = datetime.strptime("3 OCT 2014", "%d %b %Y").date()
+
+        with redirect_stdout(capture):
+            no_bigamy()
+
+        self.assertIn("There are bigamy cases in this GEDCOM file.", capture.getvalue().strip().split("\n"))
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)

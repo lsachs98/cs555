@@ -431,6 +431,17 @@ def list_living_married():  # US30: List Living Married
     return living_married
 
 
+def list_living_single():  # US31: List Living Single
+    living_single = []
+
+    for person in individuals:
+
+        if person.spouse_id is not None and person.death is None:
+            living_single.append(person)
+
+    return living_single
+
+
 def main():
     process_file(read_file())
     print_individuals()
@@ -449,6 +460,9 @@ def main():
         print(deceased.name)
     print("Living Married:")  # US30
     for living in list_living_married():
+        print(living.name)
+    print("Living Single:")  # US31
+    for living in list_living_single():
         print(living.name)
 
 

@@ -408,7 +408,6 @@ def sibling_age_space():  # US13: Sibling Age Spacing
         print("All sibling ages are spaced properly.")
     else:
         print("Some sibling ages are not spaced properly.")
-    pass
 
 
 def order_children_by_age():  # US28: Order Siblings By Age

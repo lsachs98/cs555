@@ -33,6 +33,7 @@ class TestUserStory09(unittest.TestCase):
         individuals.append(child)
         individuals.append(dad)
         individuals.append(mom)
+
         families.append(family)
 
     def tearDown(self):

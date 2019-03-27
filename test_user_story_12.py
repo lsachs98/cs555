@@ -36,6 +36,10 @@ class TestUserStory12(unittest.TestCase):
 
         families.append(fam1)
 
+    def tearDown(self):
+        individuals.clear()
+        families.clear()
+
     def test_both_parents_too_old(self):
         capture = StringIO()
         get_individual("I2").birth = datetime.strptime("19 SEP 1906", "%d %b %Y").date()

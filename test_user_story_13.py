@@ -44,6 +44,10 @@ class TestUserStory13(unittest.TestCase):
 
         families.append(fam1)
 
+    def tearDown(self):
+        individuals.clear()
+        families.clear()
+
     def test_twins_pass(self):
         capture = StringIO()
         get_individual("I1").birth = datetime.strptime("21 APR 1987", "%d %b %Y").date()

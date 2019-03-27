@@ -269,6 +269,41 @@ def birth_before_marriage():  # US02: Birth Before Marriage
         print("One or more birth/marriage dates were incorrect.")
 
 
+def marriage_before_divorce():  # US04 Marriage before divorce
+    marbeforediv = True
+    for fam in families:
+        if fam.divorce is not None and fam.marriage is not None:
+            if fam.divorce < fam.marriage:
+                print("{} and {} have a marriage before their divorce".format(get_individual(fam.husband),
+                                                                              get_individual(fam.wife)))
+                print("Marriage is: {} and divorce is: {}".format(format_date(fam.marriage), format_date(fam.divorce)))
+                marbeforediv = False
+
+    if marbeforediv:
+        print("All marriage and divorce dates are true.")
+    else:
+        print("One or more marriage/divorce dates are incorrect.")
+
+
+def marriage_before_death():  # US05 Marriage before death
+    marbeforedeat = True
+    for fam in families:
+        for ind in individuals:
+            if fam.marriage is not None:
+                if ind.name == get_wife(fam.wife).name or ind.name == get_husband(fam.husband).name:
+                    if ind.death is not None:
+                        if ind.death < fam.marriage:
+                            print("{} has an incorrect marriage and/or death date.".format(ind.name))
+                            print("Marriage is: {} and Death is: {}".format(format_date(fam.marriage),
+                                                                            format_date(ind.death)))
+                            marbeforedeat = False
+
+    if marbeforedeat:
+        print("All marriages are before death dates.")
+    else:
+        print("One or more marriages are not before death dates")
+
+
 def birth_before_parents_death():  # US09: Birth Before Death of Parents
     valid_birth = True
 
@@ -392,6 +427,8 @@ def main():
     print_families()
     dates_before_today()  # US01
     birth_before_marriage()  # US02
+    marriage_before_divorce()  # US04
+    marriage_before_death()  # US05
     birth_before_parents_death()  # US09
     no_bigamy()  # US11
     parents_not_too_old()  # US12

@@ -215,6 +215,11 @@ def check_bigamy_divorce(ind, marriage_a, marriage_b, bigamy):
     return bigamy
 
 
+def get_age(ind):
+    return datetime.today().date().year - ind.birth.year - ((datetime.today().date().month, datetime.today().date().day)
+                                                            < (ind.birth.month, ind.birth.day))
+
+
 def dates_before_today():  # US01: Dates (Birth, Death, Marriage, Divorce) Before Today
     valid_dates = True
 
@@ -279,6 +284,9 @@ def birth_before_parents_death():  # US09: Birth Before Death of Parents
         elif husband.death is not None and wife.death is not None:  # if husband and wife are both dead
             if ind.birth < husband.death and ind.birth < wife.death:
                 continue
+            else:
+                valid_birth = False
+                print("{} was born after death of parent(s).".format(ind.name))
         elif husband.death is not None and ind.birth < husband.death:  # if husband is dead
             continue
         elif wife.death is not None and ind.birth < wife.death:  # if wife is dead
@@ -288,7 +296,7 @@ def birth_before_parents_death():  # US09: Birth Before Death of Parents
             print("{} was born after death of parent(s).".format(ind.name))
 
     if valid_birth:
-        print("All birth dates were before parents' deaths")
+        print("All birth dates were before parents' deaths.")
     else:
         print("One or more birth dates were incorrect.")
 
@@ -322,11 +330,6 @@ def no_bigamy():  # US11: No Bigamy
         print("There are bigamy cases in this GEDCOM file.")
     else:
         print("There are no bigamy cases in this GEDCOM file.")
-
-
-def get_age(ind):
-    return datetime.today().date().year - ind.birth.year - ((datetime.today().date().month, datetime.today().date().day)
-                                                            < (ind.birth.month, ind.birth.day))
 
 
 def parents_not_too_old():  # US12: Parents Not Too Old

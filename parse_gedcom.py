@@ -141,6 +141,10 @@ def get_individual(ind_id):
     return individuals[int(ind_id[1:]) - 1]
 
 
+def get_family(fam_id):
+    return families[int(fam_id[1:]) - 1]
+
+
 def get_husband(husband_id):
     return individuals[int(husband_id[1:]) - 1]
 
@@ -204,11 +208,16 @@ def check_bigamy_divorce_spouse_death(ind, marriage_a, marriage_b, bigamy):
 
 
 def check_bigamy_divorce(ind, marriage_a, marriage_b, bigamy):
-    if marriage_a.marriage <= marriage_b.divorce or marriage_b.marriage <= marriage_a.divorce:
+    if marriage_a.marriage > marriage_b.divorce or marriage_b.marriage <= marriage_a.divorce:
         print_bigamy(ind, marriage_a, marriage_b)
         bigamy = True
 
     return bigamy
+
+
+def get_age(ind):
+    return datetime.today().date().year - ind.birth.year - ((datetime.today().date().month, datetime.today().date().day)
+                                                            < (ind.birth.month, ind.birth.day))
 
 
 def dates_before_today():  # US01: Dates (Birth, Death, Marriage, Divorce) Before Today
@@ -260,6 +269,41 @@ def birth_before_marriage():  # US02: Birth Before Marriage
         print("One or more birth/marriage dates were incorrect.")
 
 
+def marriage_before_divorce():  # US04: Marriage before divorce
+    marbeforediv = True
+    for fam in families:
+        if fam.divorce is not None and fam.marriage is not None:
+            if fam.divorce < fam.marriage:
+                print("{} and {} have a marriage before their divorce".format(get_individual(fam.husband),
+                                                                              get_individual(fam.wife)))
+                print("Marriage is: {} and divorce is: {}".format(format_date(fam.marriage), format_date(fam.divorce)))
+                marbeforediv = False
+
+    if marbeforediv:
+        print("All marriage and divorce dates are true.")
+    else:
+        print("One or more marriage/divorce dates are incorrect.")
+
+
+def marriage_before_death():  # US05: Marriage before death
+    marbeforedeat = True
+    for fam in families:
+        for ind in individuals:
+            if fam.marriage is not None:
+                if ind.name == get_wife(fam.wife).name or ind.name == get_husband(fam.husband).name:
+                    if ind.death is not None:
+                        if ind.death < fam.marriage:
+                            print("{} has an incorrect marriage and/or death date.".format(ind.name))
+                            print("Marriage is: {} and Death is: {}".format(format_date(fam.marriage),
+                                                                            format_date(ind.death)))
+                            marbeforedeat = False
+
+    if marbeforedeat:
+        print("All marriages are before death dates.")
+    else:
+        print("One or more marriages are not before death dates")
+
+
 def birth_before_parents_death():  # US09: Birth Before Death of Parents
     valid_birth = True
 
@@ -275,6 +319,9 @@ def birth_before_parents_death():  # US09: Birth Before Death of Parents
         elif husband.death is not None and wife.death is not None:  # if husband and wife are both dead
             if ind.birth < husband.death and ind.birth < wife.death:
                 continue
+            else:
+                valid_birth = False
+                print("{} was born after death of parent(s).".format(ind.name))
         elif husband.death is not None and ind.birth < husband.death:  # if husband is dead
             continue
         elif wife.death is not None and ind.birth < wife.death:  # if wife is dead
@@ -284,7 +331,7 @@ def birth_before_parents_death():  # US09: Birth Before Death of Parents
             print("{} was born after death of parent(s).".format(ind.name))
 
     if valid_birth:
-        print("All birth dates were before parents' deaths")
+        print("All birth dates were before parents' deaths.")
     else:
         print("One or more birth dates were incorrect.")
 
@@ -320,7 +367,51 @@ def no_bigamy():  # US11: No Bigamy
         print("There are no bigamy cases in this GEDCOM file.")
 
 
-def order_children_by_age():  # US28: Order Siblings by Age
+def parents_not_too_old():  # US12: Parents Not Too Old
+    too_old = False
+
+    for fam in families:
+        if fam.children:
+            mom = get_individual(fam.wife)
+            dad = get_individual(fam.husband)
+            for child_id in fam.children:
+                child = get_individual(child_id)
+                if abs(get_age(mom) - get_age(child)) > 60 and abs(get_age(dad) - get_age(child)) > 80:
+                    print("{}'s parents, {} and {}, are too old.".format(child.name, mom.name, dad.name))
+                    too_old = True
+                elif abs(get_age(mom) - get_age(child)) > 60:
+                    print("{}'s mother, {}, is too old.".format(child.name, mom.name))
+                    too_old = True
+                elif abs(get_age(dad) - get_age(child)) > 80:
+                    print("{}'s father, {}, is too old.".format(child.name, dad.name))
+                    too_old = True
+
+    if too_old:
+        print("Some parents are too old in this GEDCOM file.")
+    else:
+        print("All parents are not too old in this GEDCOM file.")
+
+
+def sibling_age_space():  # US13: Sibling Age Spacing
+    sibling_space = True
+    for fam in families:
+        if fam.children and len(fam.children) > 1:
+            for i in range(len(fam.children)):
+                for j in range(i + 1, len(fam.children)):
+                    if 2 < abs((get_individual(fam.children[i]).birth - get_individual(fam.children[j]).birth).days) < \
+                            243.3:
+                        print("{} and {} are not spaced properly.".format(get_individual(fam.children[i]).name,
+                                                                          get_individual(fam.children[j]).name))
+                        sibling_space = False
+
+    if sibling_space:
+        print("All sibling ages are spaced properly.")
+    else:
+        print("Some sibling ages are not spaced properly.")
+    pass
+
+
+def order_children_by_age():  # US28: Order Siblings By Age
     for fam in families:
         if fam.children:
             fam.children.sort(key=lambda child: get_individual(child).birth)
@@ -330,17 +421,49 @@ def list_deceased():  # US29: List Deceased
     return [ind for ind in individuals if ind.death is not None]
 
 
+def list_living_married():  # US30: List Living Married
+    living_married = []
+
+    for person in individuals:
+        if person.spouse_id is not None and person.death is None:
+            living_married.append(person)
+
+    return living_married
+
+
+def list_living_single():  # US31: List Living Single
+    living_single = []
+
+    for person in individuals:
+
+        if person.spouse_id is not None and person.death is None:
+            living_single.append(person)
+
+    return living_single
+
+
 def main():
     process_file(read_file())
     print_individuals()
     print_families()
-    dates_before_today()
-    birth_before_marriage()
-    birth_before_parents_death()
-    no_bigamy()
+    dates_before_today()  # US01
+    birth_before_marriage()  # US02
+    marriage_before_divorce()  # US04
+    marriage_before_death()  # US05
+    birth_before_parents_death()  # US09
+    no_bigamy()  # US11
+    parents_not_too_old()  # US12
+    sibling_age_space()  # US13
+    order_children_by_age()  # US28
+    print("Deceased:")  # US29
     for deceased in list_deceased():
-        print(deceased.i_id)
-    order_children_by_age()
+        print(deceased.name)
+    print("Living Married:")  # US30
+    for living in list_living_married():
+        print(living.name)
+    print("Living Single:")  # US31
+    for living in list_living_single():
+        print(living.name)
 
 
 if __name__ == '__main__':

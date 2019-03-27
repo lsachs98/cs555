@@ -1,50 +1,112 @@
-from unittest import TestCase
+import unittest
 from parse_gedcom import *
+from io import StringIO
+from contextlib import redirect_stdout
 
 
-class TestUserStory09(TestCase):
+class TestUserStory09(unittest.TestCase):
     def setUp(self):
-        print(self._testMethodName)
         child = Individual("I1")
         child.name = "Mark /Rivers/"
         child.sex = "M"
         child.birth = datetime.strptime("21 APR 1987", "%d %b %Y").date()
         child.child_id = "F1"
-        individuals.append(child)
-        hus = Individual("I2")
-        hus.name = "Jason /Rivers/"
-        hus.sex = "M"
-        hus.birth = datetime.strptime("19 SEP 1960", "%d %b %Y").date()
-        hus.spouse_id = "F1"
-        individuals.append(hus)
-        wife = Individual("I3")
-        wife.name = "Abigail /Glute/"
-        wife.sex = "F"
-        wife.birth = datetime.strptime("3 OCT 1965", "%d %b %Y").date()
-        wife.spouse_id = "F1"
-        individuals.append(wife)
+
+        dad = Individual("I2")
+        dad.name = "Jason /Rivers/"
+        dad.sex = "M"
+        dad.birth = datetime.strptime("19 SEP 1960", "%d %b %Y").date()
+        dad.spouse_id = "F1"
+
+        mom = Individual("I3")
+        mom.name = "Abigail /Glute/"
+        mom.sex = "F"
+        mom.birth = datetime.strptime("3 OCT 1965", "%d %b %Y").date()
+        mom.spouse_id = "F1"
+
         family = Family("F1")
         family.husband = "I2"
         family.wife = "I3"
         family.children.append("I1")
         family.marriage = datetime.strptime("29 JUL 1986", "%d %b %Y").date()
+
+        individuals.append(child)
+        individuals.append(dad)
+        individuals.append(mom)
+
         families.append(family)
 
     def tearDown(self):
         individuals.clear()
         families.clear()
 
-    def test_get_husband_id(self):
-        self.assertEqual(get_husband_id(individuals[0]), "I2")
+    def test_both_parents_alive(self):
+        capture = StringIO()
+        get_individual("I2").death = None
+        get_individual("I3").death = None
 
-    def test_get_wife_id(self):
-        self.assertEqual(get_wife_id(individuals[0]), "I3")
+        with redirect_stdout(capture):
+            birth_before_parents_death()
 
-    def test_get_husband(self):
-        self.assertEqual(get_husband("I2"), individuals[1])
+        self.assertIn("All birth dates were before parents' deaths.", capture.getvalue().strip().split("\n"))
 
-    def test_get_wife(self):
-        self.assertEqual(get_wife("I3"), individuals[2])
+    def test_both_parents_dead_pass(self):
+        capture = StringIO()
+        get_individual("I2").death = datetime.strptime("3 OCT 1988", "%d %b %Y").date()
+        get_individual("I3").death = datetime.strptime("3 OCT 1988", "%d %b %Y").date()
 
-    def test_user_story_09(self):
-        self.assertTrue(user_story_09(individuals[0]), individuals[0])
+        with redirect_stdout(capture):
+            birth_before_parents_death()
+
+        self.assertIn("All birth dates were before parents' deaths.", capture.getvalue().strip().split("\n"))
+
+    def test_both_parents_dead_fail(self):
+        capture = StringIO()
+        get_individual("I2").death = datetime.strptime("3 OCT 1986", "%d %b %Y").date()
+        get_individual("I3").death = datetime.strptime("3 OCT 1988", "%d %b %Y").date()
+
+        with redirect_stdout(capture):
+            birth_before_parents_death()
+
+        self.assertIn("One or more birth dates were incorrect.", capture.getvalue().strip().split("\n"))
+
+    def test_dad_dead_pass(self):
+        capture = StringIO()
+        get_individual("I2").death = datetime.strptime("3 OCT 1988", "%d %b %Y").date()
+        get_individual("I3").death = None
+        with redirect_stdout(capture):
+            birth_before_parents_death()
+
+        self.assertIn("All birth dates were before parents' deaths.", capture.getvalue().strip().split("\n"))
+
+    def test_dad_dead_fail(self):
+        capture = StringIO()
+        get_individual("I2").death = datetime.strptime("3 OCT 1986", "%d %b %Y").date()
+        get_individual("I3").death = None
+        with redirect_stdout(capture):
+            birth_before_parents_death()
+
+        self.assertIn("One or more birth dates were incorrect.", capture.getvalue().strip().split("\n"))
+
+    def test_mom_dead_pass(self):
+        capture = StringIO()
+        get_individual("I2").death = None
+        get_individual("I3").death = datetime.strptime("3 OCT 1988", "%d %b %Y").date()
+
+        with redirect_stdout(capture):
+            birth_before_parents_death()
+
+        self.assertIn("All birth dates were before parents' deaths.", capture.getvalue().strip().split("\n"))
+
+    def test_mom_dead_fail(self):
+        capture = StringIO()
+        get_individual("I2").death = None
+        get_individual("I3").death = datetime.strptime("3 OCT 1986", "%d %b %Y").date()
+        with redirect_stdout(capture):
+            birth_before_parents_death()
+
+        self.assertIn("One or more birth dates were incorrect.", capture.getvalue().strip().split("\n"))
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)

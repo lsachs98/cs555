@@ -541,7 +541,7 @@ def main():
     birth_before_death()  # US03
     marriage_before_divorce()  # US04
     marriage_before_death()  # US05
-    divorce_before_death  # US06
+    divorce_before_death()  # US06
     birth_before_parents_death()  # US09
     no_bigamy()  # US11
     parents_not_too_old()  # US12

@@ -286,6 +286,21 @@ def birth_before_marriage():  # US02: Birth Before Marriage
         print("One or more birth/marriage dates were incorrect.")
 
 
+def birth_before_death():  # US03: Birth Before Death
+    bbeforedeath = True
+
+    for ind in individuals:
+        if ind.death is not None and ind.death < ind.birth:
+            print("{} has a birth date before his death.".format(ind.name))
+            print("Birth is: {} and Death is: {}".format(format_date(ind.birth), format_date(ind.death)))
+            bbeforedeath = False
+
+    if bbeforedeath:
+        print("All birth and death dates are valid.")
+    else:
+        print("One or more people has a birth date before their death.")
+
+
 def marriage_before_divorce():  # US04: Marriage before divorce
     marbeforediv = True
     for fam in families:
@@ -319,6 +334,27 @@ def marriage_before_death():  # US05: Marriage before death
         print("All marriages are before death dates.")
     else:
         print("One or more marriages are not before death dates")
+
+
+def divorce_before_death():  # US06: Divorce Before Death
+    divbeforedeat = True
+
+    for fam in families:
+        wifename = get_wife(fam.wife).name
+        hubbyname = get_husband(fam.husband).name
+
+        for ind in individuals:
+            personname = ind.name
+            if fam.divorce is not None:
+                if personname == wifename or personname == hubbyname:
+                    if ind.death is not None and ind.death < fam.divorce:
+                        print("{} has an incorrect divorce and/or death date.".format(personname))
+                        print("Divorce is: {} and Death is: {}".format(format_date(fam.divorce), format_date(ind.death)))
+                        divbeforedeat = False
+    if divbeforedeat:
+        print("All divorces are before death dates.")
+    else:
+        print("One or more divorces are not before death dates")
 
 
 def birth_before_parents_death():  # US09: Birth Before Death of Parents
@@ -502,8 +538,10 @@ def main():
     print_families()
     dates_before_today()  # US01
     birth_before_marriage()  # US02
+    birth_before_death()  # US03
     marriage_before_divorce()  # US04
     marriage_before_death()  # US05
+    divorce_before_death  # US06
     birth_before_parents_death()  # US09
     no_bigamy()  # US11
     parents_not_too_old()  # US12

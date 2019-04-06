@@ -4,7 +4,7 @@ from io import StringIO
 from contextlib import redirect_stdout
 
 
-class TestUserStory17(unittest.TestCase):
+class TestUserStory18(unittest.TestCase):
     def setUp(self):
         child1 = Individual("I1")
         child1.name = "Mark /Rivers/"

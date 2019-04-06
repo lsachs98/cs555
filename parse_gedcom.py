@@ -435,6 +435,10 @@ def no_marriage_to_descendants():  # US17: No Marriage to Descendants
         if descendants:
             for fam_id in get_individuals_families(ind.i_id):
                 if any(s_id in descendants for s_id in [get_family(fam_id).husband, get_family(fam_id).wife]):
+                    if ind.i_id == get_family(fam_id).husband:
+                        print("{} is married to descendant, {}.".format(ind.name, get_wife(get_family(fam_id).wife).name))
+                    else:
+                        print("{} is married to descendant, {}.".format(ind.name, get_husband(get_family(fam_id).husband).name))
                     descendant_marriage = True
 
     if descendant_marriage:

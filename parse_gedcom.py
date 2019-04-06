@@ -220,6 +220,23 @@ def get_age(ind):
                                                             < (ind.birth.month, ind.birth.day))
 
 
+def get_individuals_families(i_id):
+    return [fam.f_id for fam in families if i_id in [fam.husband, fam.wife]]
+
+
+def get_descendants(i_id):
+    descendants = []
+
+    for fam_id in get_individuals_families(i_id):
+        if get_family(fam_id).children:
+            descendants.extend(get_family(fam_id).children)
+
+            for child_id in get_family(fam_id).children:
+                descendants.extend(get_descendants(child_id))
+
+    return descendants
+
+
 def dates_before_today():  # US01: Dates (Birth, Death, Marriage, Divorce) Before Today
     valid_dates = True
 
@@ -411,7 +428,19 @@ def sibling_age_space():  # US13: Sibling Age Spacing
 
 
 def no_marriage_to_descendants():  # US17: No Marriage to Descendants
-    pass
+    descendant_marriage = False
+
+    for ind in individuals:
+        descendants = get_descendants(ind.i_id)
+        if descendants:
+            for fam_id in get_individuals_families(ind.i_id):
+                if any(s_id in descendants for s_id in [get_family(fam_id).husband, get_family(fam_id).wife]):
+                    descendant_marriage = True
+
+    if descendant_marriage:
+        print("Some ancestors are married to descendants.")
+    else:
+        print("No ancestors are married to descendants.")
 
 
 def siblings_should_not_marry():  # US18: Siblings Should Not Marry
@@ -421,7 +450,7 @@ def siblings_should_not_marry():  # US18: Siblings Should Not Marry
         if fam.children and len(fam.children) > 1:
             for i in range(len(fam.children)):
                 for j in range(i + 1, len(fam.children)):
-                    if any((f.husband == fam.children[i] or f.wife == fam.children[i]) and (f.husband == fam.children[j] or f.wife == fam.children[j]) for f in families):
+                    if any(fam.children[i] in [f.husband, f.wife] and fam.children[j] in [f.husband, f.wife] for f in families):
                         sibling_marriage = True
                         print("{} and {} are married siblings.".format(get_individual(fam.children[i]).name,
                                                                           get_individual(fam.children[j]).name))

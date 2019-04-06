@@ -6,16 +6,17 @@ from Tests.test_user_story_12 import TestUserStory12
 from Tests.test_user_story_13 import TestUserStory13
 from Tests.test_user_story_17 import TestUserStory17
 from Tests.test_user_story_18 import TestUserStory18
+from Tests.test_user_story_30 import TestUserStory30
 
 
 def test():
     loader = unittest.TestLoader()
     suites = [loader.loadTestsFromTestCase(TestUserStory09), loader.loadTestsFromTestCase(TestUserStory11),
               loader.loadTestsFromTestCase(TestUserStory12), loader.loadTestsFromTestCase(TestUserStory13),
-              loader.loadTestsFromTestCase(TestUserStory17), loader.loadTestsFromTestCase(TestUserStory18)]
+              loader.loadTestsFromTestCase(TestUserStory17), loader.loadTestsFromTestCase(TestUserStory18),
+              loader.loadTestsFromTestCase(TestUserStory30)]
 
-    tests = unittest.TestSuite(suites)
-    unittest.TextTestRunner(verbosity=2).run(tests)
+    unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite(suites))
 
 
 if __name__ == '__main__':

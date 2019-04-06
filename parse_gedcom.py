@@ -408,7 +408,6 @@ def sibling_age_space():  # US13: Sibling Age Spacing
         print("All sibling ages are spaced properly.")
     else:
         print("Some sibling ages are not spaced properly.")
-    pass
 
 
 def no_marriage_to_descendants():  # US17: No Marriage to Descendants
@@ -416,7 +415,21 @@ def no_marriage_to_descendants():  # US17: No Marriage to Descendants
 
 
 def siblings_should_not_marry():  # US18: Siblings Should Not Marry
-    pass
+    sibling_marriage = False
+
+    for fam in families:
+        if fam.children and len(fam.children) > 1:
+            for i in range(len(fam.children)):
+                for j in range(i + 1, len(fam.children)):
+                    if any((f.husband == fam.children[i] or f.wife == fam.children[i]) and (f.husband == fam.children[j] or f.wife == fam.children[j]) for f in families):
+                        sibling_marriage = True
+                        print("{} and {} are married siblings.".format(get_individual(fam.children[i]).name,
+                                                                          get_individual(fam.children[j]).name))
+
+    if sibling_marriage:
+        print("Some siblings are married.")
+    else:
+        print("All siblings are not married.")
 
 
 def order_children_by_age():  # US28: Order Siblings By Age

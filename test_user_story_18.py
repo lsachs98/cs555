@@ -4,13 +4,14 @@ from io import StringIO
 from contextlib import redirect_stdout
 
 
-class TestUserStory13(unittest.TestCase):
+class TestUserStory17(unittest.TestCase):
     def setUp(self):
         child1 = Individual("I1")
         child1.name = "Mark /Rivers/"
         child1.sex = "M"
         child1.birth = datetime.strptime("21 APR 1987", "%d %b %Y").date()
         child1.child_id = "F1"
+        child1.spouse_id = "F2"
 
         child2 = Individual("I2")
         child2.name = "Mary /Rivers/"
@@ -25,7 +26,7 @@ class TestUserStory13(unittest.TestCase):
         dad.spouse_id = "F1"
 
         mom = Individual("I4")
-        mom.name = "Abigail /Glute/"
+        mom.name = "Abigail /Rivers/"
         mom.sex = "F"
         mom.birth = datetime.strptime("3 OCT 1965", "%d %b %Y").date()
         mom.spouse_id = "F1"
@@ -37,52 +38,48 @@ class TestUserStory13(unittest.TestCase):
         fam1.children.append("I2")
         fam1.marriage = datetime.strptime("29 JUL 1986", "%d %b %Y").date()
 
+        spouse = Individual("I5")
+        spouse.name = "Rachel /Rivers/"
+        spouse.sex = "F"
+        spouse.birth = datetime.strptime("29 FEB 1992", "%d %b %Y").date()
+        spouse.spouse_id = "F2"
+
+        fam2 = Family("F2")
+        fam2.husband = "I1"
+        fam2.wife = "I5"
+        fam2.marriage = datetime.strptime("17 AUG 2014", "%d %b %Y").date()
+
         individuals.append(child1)
         individuals.append(child2)
         individuals.append(dad)
         individuals.append(mom)
+        individuals.append(spouse)
 
         families.append(fam1)
+        families.append(fam2)
 
     def tearDown(self):
         individuals.clear()
         families.clear()
 
-    def test_twins_pass(self):
+    def test_siblings_marriage_pass(self):
         capture = StringIO()
 
         with redirect_stdout(capture):
-            sibling_age_space()
+            siblings_should_not_marry()
 
-        self.assertIn("All sibling ages are spaced properly.", capture.getvalue().strip().split("\n"))
+        self.assertIn("All siblings are not married.", capture.getvalue().strip().split("\n"))
 
-    def test_twins_fail(self):
+    def test_siblings_marriage_fail(self):
         capture = StringIO()
-        get_individual("I1").birth = datetime.strptime("21 APR 1987", "%d %b %Y").date()
-        get_individual("I2").birth = datetime.strptime("24 APR 1987", "%d %b %Y").date()
+        get_individual("I5").spouse_id = None
+        get_individual("I2").spouse_id = "F2"
+        get_family("F2").wife = "I2"
 
         with redirect_stdout(capture):
-            sibling_age_space()
+            siblings_should_not_marry()
 
-        self.assertIn("Some sibling ages are not spaced properly.", capture.getvalue().strip().split("\n"))
-
-    def test_sibling_pass(self):
-        capture = StringIO()
-
-        with redirect_stdout(capture):
-            sibling_age_space()
-
-        self.assertIn("All sibling ages are spaced properly.", capture.getvalue().strip().split("\n"))
-
-    def test_sibling_fail(self):
-        capture = StringIO()
-        get_individual("I1").birth = datetime.strptime("21 APR 1987", "%d %b %Y").date()
-        get_individual("I2").birth = datetime.strptime("24 JUN 1987", "%d %b %Y").date()
-
-        with redirect_stdout(capture):
-            sibling_age_space()
-
-        self.assertIn("Some sibling ages are not spaced properly.", capture.getvalue().strip().split("\n"))
+        self.assertIn("Some siblings are married.", capture.getvalue().strip().split("\n"))
 
 
 if __name__ == '__main__':

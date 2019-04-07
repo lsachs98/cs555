@@ -1,6 +1,6 @@
 individuals = []
 families = []
-FILE_NAME = "test0.ged"
+FILE_NAME = "test.ged"
 
 
 class Individual:

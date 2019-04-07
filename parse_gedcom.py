@@ -526,7 +526,7 @@ def list_living_single():  # US31: List Living Single
 
     for person in individuals:
 
-        if person.spouse_id is not None and person.death is None:
+        if person.spouse_id is None and person.death is None:
             living_single.append(person)
 
     return living_single

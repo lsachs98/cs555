@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 individuals = []
 families = []
@@ -525,11 +525,30 @@ def list_living_single():  # US31: List Living Single
     living_single = []
 
     for person in individuals:
-
         if person.spouse_id is None and person.death is None:
             living_single.append(person)
 
     return living_single
+
+
+def list_recent_births():  # US35: List Recent Births
+    recent_births = []
+
+    for person in individuals:
+        if person.birth is not None and datetime.now().date() - timedelta(days=365) <= person.birth <= datetime.now().date():
+            recent_births.append(person)
+
+    return recent_births
+
+
+def list_recent_deaths():  # US36: List Recent Deaths
+    recent_deaths = []
+
+    for person in individuals:
+        if person.death is not None and datetime.now().date() - timedelta(days=365) <= person.death <= datetime.now().date():
+            recent_deaths.append(person)
+
+    return recent_deaths
 
 
 def main():
@@ -558,6 +577,12 @@ def main():
     print("Living Single:")  # US31
     for living in list_living_single():
         print(living.name)
+    print("Recent Births:")  # US35
+    for born in list_recent_births():
+        print(born.name)
+    print("Living Deaths:")  # US36
+    for dead in list_recent_deaths():
+        print(dead.name)
 
 
 if __name__ == '__main__':

@@ -10,6 +10,8 @@ from Tests.test_user_story_28 import TestUserStory28
 from Tests.test_user_story_29 import TestUserStory29
 from Tests.test_user_story_30 import TestUserStory30
 from Tests.test_user_story_31 import TestUserStory31
+from Tests.test_user_story_35 import TestUserStory35
+from Tests.test_user_story_36 import TestUserStory36
 
 
 def test():
@@ -18,7 +20,8 @@ def test():
               loader.loadTestsFromTestCase(TestUserStory12), loader.loadTestsFromTestCase(TestUserStory13),
               loader.loadTestsFromTestCase(TestUserStory17), loader.loadTestsFromTestCase(TestUserStory18),
               loader.loadTestsFromTestCase(TestUserStory28), loader.loadTestsFromTestCase(TestUserStory29),
-              loader.loadTestsFromTestCase(TestUserStory30), loader.loadTestsFromTestCase(TestUserStory31)]
+              loader.loadTestsFromTestCase(TestUserStory30), loader.loadTestsFromTestCase(TestUserStory31),
+              loader.loadTestsFromTestCase(TestUserStory35), loader.loadTestsFromTestCase(TestUserStory36)]
 
     unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite(suites))
 

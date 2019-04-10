@@ -23,7 +23,7 @@ class Family:
         self.children = []
 
 def read_file():
-    with open("test0.ged") as file:
+    with open("test.ged") as file:
         lines = file.readlines()
     file.close()
     return lines

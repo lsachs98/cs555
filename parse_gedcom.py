@@ -1,8 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 individuals = []
 families = []
-FILE_NAME = "test0.ged"
+FILE_NAME = "test.ged"
 
 
 class Individual:
@@ -220,6 +220,23 @@ def get_age(ind):
                                                             < (ind.birth.month, ind.birth.day))
 
 
+def get_individuals_families(i_id):
+    return [fam.f_id for fam in families if i_id in [fam.husband, fam.wife]]
+
+
+def get_descendants(i_id):
+    descendants = []
+
+    for fam_id in get_individuals_families(i_id):
+        if get_family(fam_id).children:
+            descendants.extend(get_family(fam_id).children)
+
+            for child_id in get_family(fam_id).children:
+                descendants.extend(get_descendants(child_id))
+
+    return descendants
+
+
 def dates_before_today():  # US01: Dates (Birth, Death, Marriage, Divorce) Before Today
     valid_dates = True
 
@@ -269,6 +286,21 @@ def birth_before_marriage():  # US02: Birth Before Marriage
         print("One or more birth/marriage dates were incorrect.")
 
 
+def birth_before_death():  # US03: Birth Before Death
+    bbeforedeath = True
+
+    for ind in individuals:
+        if ind.death is not None and ind.death < ind.birth:
+            print("{} has a birth date before his death.".format(ind.name))
+            print("Birth is: {} and Death is: {}".format(format_date(ind.birth), format_date(ind.death)))
+            bbeforedeath = False
+
+    if bbeforedeath:
+        print("All birth and death dates are valid.")
+    else:
+        print("One or more people has a birth date before their death.")
+
+
 def marriage_before_divorce():  # US04: Marriage before divorce
     marbeforediv = True
     for fam in families:
@@ -302,6 +334,27 @@ def marriage_before_death():  # US05: Marriage before death
         print("All marriages are before death dates.")
     else:
         print("One or more marriages are not before death dates")
+
+
+def divorce_before_death():  # US06: Divorce Before Death
+    divbeforedeat = True
+
+    for fam in families:
+        wifename = get_wife(fam.wife).name
+        hubbyname = get_husband(fam.husband).name
+
+        for ind in individuals:
+            personname = ind.name
+            if fam.divorce is not None:
+                if personname == wifename or personname == hubbyname:
+                    if ind.death is not None and ind.death < fam.divorce:
+                        print("{} has an incorrect divorce and/or death date.".format(personname))
+                        print("Divorce is: {} and Death is: {}".format(format_date(fam.divorce), format_date(ind.death)))
+                        divbeforedeat = False
+    if divbeforedeat:
+        print("All divorces are before death dates.")
+    else:
+        print("One or more divorces are not before death dates")
 
 
 def birth_before_parents_death():  # US09: Birth Before Death of Parents
@@ -410,6 +463,45 @@ def sibling_age_space():  # US13: Sibling Age Spacing
         print("Some sibling ages are not spaced properly.")
 
 
+def no_marriage_to_descendants():  # US17: No Marriage to Descendants
+    descendant_marriage = False
+
+    for ind in individuals:
+        descendants = get_descendants(ind.i_id)
+        if descendants:
+            for fam_id in get_individuals_families(ind.i_id):
+                if any(s_id in descendants for s_id in [get_family(fam_id).husband, get_family(fam_id).wife]):
+                    if ind.i_id == get_family(fam_id).husband:
+                        print("{} is married to descendant, {}.".format(ind.name, get_wife(get_family(fam_id).wife).name))
+                    else:
+                        print("{} is married to descendant, {}.".format(ind.name, get_husband(get_family(fam_id).husband).name))
+                    descendant_marriage = True
+
+    if descendant_marriage:
+        print("Some ancestors are married to descendants.")
+    else:
+        print("No ancestors are married to descendants.")
+
+
+def siblings_should_not_marry():  # US18: Siblings Should Not Marry
+    sibling_marriage = False
+
+    for fam in families:
+        if fam.children and len(fam.children) > 1:
+            for i in range(len(fam.children)):
+                for j in range(i + 1, len(fam.children)):
+                    if any(fam.children[i] in [f.husband, f.wife] and fam.children[j] in [f.husband, f.wife] for f in families):
+                        sibling_marriage = True
+                        print("{} and {} are married siblings.".format(get_individual(fam.children[i]).name,
+                                                                          get_individual(fam.children[j]).name))
+
+    if sibling_marriage:
+        print("Some siblings are married.")
+    else:
+        print("All siblings are not married.")
+
+
+
 def order_children_by_age():  # US28: Order Siblings By Age
     for fam in families:
         if fam.children:
@@ -434,11 +526,30 @@ def list_living_single():  # US31: List Living Single
     living_single = []
 
     for person in individuals:
-
-        if person.spouse_id is not None and person.death is None:
+        if person.spouse_id is None and person.death is None:
             living_single.append(person)
 
     return living_single
+
+
+def list_recent_births():  # US35: List Recent Births
+    recent_births = []
+
+    for person in individuals:
+        if person.birth is not None and datetime.now().date() - timedelta(days=365) <= person.birth <= datetime.now().date():
+            recent_births.append(person)
+
+    return recent_births
+
+
+def list_recent_deaths():  # US36: List Recent Deaths
+    recent_deaths = []
+
+    for person in individuals:
+        if person.death is not None and datetime.now().date() - timedelta(days=365) <= person.death <= datetime.now().date():
+            recent_deaths.append(person)
+
+    return recent_deaths
 
 
 def main():
@@ -447,12 +558,16 @@ def main():
     print_families()
     dates_before_today()  # US01
     birth_before_marriage()  # US02
+    birth_before_death()  # US03
     marriage_before_divorce()  # US04
     marriage_before_death()  # US05
+    divorce_before_death()  # US06
     birth_before_parents_death()  # US09
     no_bigamy()  # US11
     parents_not_too_old()  # US12
     sibling_age_space()  # US13
+    no_marriage_to_descendants()  # US17
+    siblings_should_not_marry()  # US18
     order_children_by_age()  # US28
     print("Deceased:")  # US29
     for deceased in list_deceased():
@@ -463,6 +578,12 @@ def main():
     print("Living Single:")  # US31
     for living in list_living_single():
         print(living.name)
+    print("Recent Births:")  # US35
+    for born in list_recent_births():
+        print(born.name)
+    print("Living Deaths:")  # US36
+    for dead in list_recent_deaths():
+        print(dead.name)
 
 
 if __name__ == '__main__':

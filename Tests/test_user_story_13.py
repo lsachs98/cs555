@@ -13,8 +13,8 @@ class TestUserStory13(unittest.TestCase):
         child1.child_id = "F1"
 
         child2 = Individual("I2")
-        child2.name = "Mark /Rivers/"
-        child2.sex = "M"
+        child2.name = "Mary /Rivers/"
+        child2.sex = "F"
         child2.birth = datetime.strptime("21 APR 1987", "%d %b %Y").date()
         child2.child_id = "F1"
 
@@ -31,8 +31,8 @@ class TestUserStory13(unittest.TestCase):
         mom.spouse_id = "F1"
 
         fam1 = Family("F1")
-        fam1.husband = "I2"
-        fam1.wife = "I3"
+        fam1.husband = "I3"
+        fam1.wife = "I4"
         fam1.children.append("I1")
         fam1.children.append("I2")
         fam1.marriage = datetime.strptime("29 JUL 1986", "%d %b %Y").date()
@@ -50,8 +50,6 @@ class TestUserStory13(unittest.TestCase):
 
     def test_twins_pass(self):
         capture = StringIO()
-        get_individual("I1").birth = datetime.strptime("21 APR 1987", "%d %b %Y").date()
-        get_individual("I2").birth = datetime.strptime("21 APR 1987", "%d %b %Y").date()
 
         with redirect_stdout(capture):
             sibling_age_space()
@@ -70,8 +68,6 @@ class TestUserStory13(unittest.TestCase):
 
     def test_sibling_pass(self):
         capture = StringIO()
-        get_individual("I1").birth = datetime.strptime("21 APR 1987", "%d %b %Y").date()
-        get_individual("I2").birth = datetime.strptime("21 DEC 1987", "%d %b %Y").date()
 
         with redirect_stdout(capture):
             sibling_age_space()

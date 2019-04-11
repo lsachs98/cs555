@@ -463,6 +463,19 @@ def sibling_age_space():  # US13: Sibling Age Spacing
         print("Some sibling ages are not spaced properly.")
 
 
+def fewer_than_fifteen_siblings():  # US15: Fewer Than 15 Siblings
+    too_many_kids = False
+    for fam in families:
+        if fam.children and len(fam.children) >= 15:
+            print("Family {} has greater than 15 children.".format(fam.f_id))
+            too_many_kids = True
+
+    if too_many_kids:
+        print("Some families have too many children.")
+    else:
+        print("All families have less than 15 children.")
+
+
 def no_marriage_to_descendants():  # US17: No Marriage to Descendants
     descendant_marriage = False
 
@@ -499,7 +512,6 @@ def siblings_should_not_marry():  # US18: Siblings Should Not Marry
         print("Some siblings are married.")
     else:
         print("All siblings are not married.")
-
 
 
 def order_children_by_age():  # US28: Order Siblings By Age

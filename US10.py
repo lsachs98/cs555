@@ -18,8 +18,6 @@ def user_story_10():
         for ind in individuals:
             personname = ind.name
             if(personname == wifename or personname == hubbyname):
-                #now gotta check their age
-                #print("Here in the right name")
                 if(dateat14(ind.birth)>str(fam.marriage)):
                     print(ind.name + " got married before the age of 14!")
                     print(ind.name + " got married on: " + datetime.strftime(fam.marriage, '%d %b %Y') + " and their birth date is: " + datetime.strftime(ind.birth, '%d %b %Y'))

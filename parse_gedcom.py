@@ -578,6 +578,7 @@ def main():
     no_bigamy()  # US11
     parents_not_too_old()  # US12
     sibling_age_space()  # US13
+    fewer_than_fifteen_siblings()  # US15
     no_marriage_to_descendants()  # US17
     siblings_should_not_marry()  # US18
     order_children_by_age()  # US28

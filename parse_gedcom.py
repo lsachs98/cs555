@@ -476,6 +476,24 @@ def fewer_than_fifteen_siblings():  # US15: Fewer Than 15 Siblings
         print("All families have less than 15 children.")
 
 
+def male_last_names():  # US16: Male Last Names
+    fathers_last_name = True
+
+    for fam in families:
+        if fam.children:
+            last_name = get_individual(fam.husband).name[get_individual(fam.husband).name.find("/"):]
+
+            for kid in fam.children:
+                if get_individual(kid).sex == "M" and last_name not in get_individual(kid).name:
+                    print("{} does not have his father's last name, {}".format(get_individual(kid).name, last_name))
+                    fathers_last_name = False
+
+    if fathers_last_name:
+        print("All male children have their father's last name.")
+    else:
+        print("Some male children don't have their father's last name.")
+
+
 def no_marriage_to_descendants():  # US17: No Marriage to Descendants
     descendant_marriage = False
 
@@ -579,6 +597,7 @@ def main():
     parents_not_too_old()  # US12
     sibling_age_space()  # US13
     fewer_than_fifteen_siblings()  # US15
+    male_last_names()  # US16
     no_marriage_to_descendants()  # US17
     siblings_should_not_marry()  # US18
     order_children_by_age()  # US28

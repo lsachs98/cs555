@@ -349,12 +349,35 @@ def divorce_before_death():  # US06: Divorce Before Death
                 if personname == wifename or personname == hubbyname:
                     if ind.death is not None and ind.death < fam.divorce:
                         print("{} has an incorrect divorce and/or death date.".format(personname))
-                        print("Divorce is: {} and Death is: {}".format(format_date(fam.divorce), format_date(ind.death)))
+                        print(
+                            "Divorce is: {} and Death is: {}".format(format_date(fam.divorce), format_date(ind.death)))
                         divbeforedeat = False
     if divbeforedeat:
         print("All divorces are before death dates.")
     else:
         print("One or more divorces are not before death dates")
+
+
+def less_than_150_years_old():  # US07: Less Than 150 Years Old
+    right_age = True
+
+    for ind in individuals:
+        if ind.death is None:
+            diff = datetime.now().date() - ind.birth
+            if (diff.days / 365.24) > 150:
+                print("{} is over 150 years old! Whaat?! Birthday is {}.".format(ind.name, format_date(ind.birth)))
+                right_age = False
+        else:
+            diff = ind.death - ind.birth
+            if (diff.days / 365.24) > 150:
+                print("{} was over 150 years old! Whaat?! Birthday is {} and Death is {}.".format(ind.name, format_date(
+                    ind.birth), format_date(ind.death)))
+                right_age = False
+
+    if right_age:
+        print("Every person is within the right age range.")
+    else:
+        print("One or more individuals are not within the right age range.")
 
 
 def birth_before_parents_death():  # US09: Birth Before Death of Parents
@@ -387,6 +410,42 @@ def birth_before_parents_death():  # US09: Birth Before Death of Parents
         print("All birth dates were before parents' deaths.")
     else:
         print("One or more birth dates were incorrect.")
+
+
+def marriage_after_fourteen():  # US10: Marriage after 14
+    proper_marriage = True
+
+    for fam in families:
+        if fam.marriage is None:
+            continue
+
+        wife = get_wife(fam.wife)
+        hubby = get_husband(fam.husband)
+
+        wife_marriage_age = (fam.marriage - wife.birth).days / 365.24
+        husband_marriage_age = (fam.marriage - hubby.birth).days / 365.24
+
+        if wife_marriage_age < 14 and husband_marriage_age < 14:
+            print("{} and {} both got married before the age of 14!".format(wife.name, hubby.name))
+            print("They got married on: {} and {}'s birth date is: {} and {}'s birth date is: {}".format(
+                format_date(fam.marriage),
+                wife.name, format_date(wife.birth), hubby.name, format_date(hubby.birth)))
+            proper_marriage = False
+        elif wife_marriage_age < 14:
+            print("{} got married before the age of 14!".format(wife.name))
+            print("{} got married on: {} and their birth date is: {}".format(wife.name, format_date(fam.marriage),
+                                                                             format_date(wife.birth)))
+            proper_marriage = False
+        elif husband_marriage_age < 14:
+            print("{} got married before the age of 14!".format(hubby.name))
+            print("{} got married on: {} and their birth date is: {}".format(hubby.name, format_date(fam.marriage),
+                                                                             format_date(hubby.birth)))
+            proper_marriage = False
+
+    if proper_marriage:
+        print("Every person here got married at the right age.")
+    else:
+        print("Someone got married waaay too early.")
 
 
 def no_bigamy():  # US11: No Bigamy
@@ -503,9 +562,11 @@ def no_marriage_to_descendants():  # US17: No Marriage to Descendants
             for fam_id in get_individuals_families(ind.i_id):
                 if any(s_id in descendants for s_id in [get_family(fam_id).husband, get_family(fam_id).wife]):
                     if ind.i_id == get_family(fam_id).husband:
-                        print("{} is married to descendant, {}.".format(ind.name, get_wife(get_family(fam_id).wife).name))
+                        print(
+                            "{} is married to descendant, {}.".format(ind.name, get_wife(get_family(fam_id).wife).name))
                     else:
-                        print("{} is married to descendant, {}.".format(ind.name, get_husband(get_family(fam_id).husband).name))
+                        print("{} is married to descendant, {}.".format(ind.name,
+                                                                        get_husband(get_family(fam_id).husband).name))
                     descendant_marriage = True
 
     if descendant_marriage:
@@ -521,10 +582,11 @@ def siblings_should_not_marry():  # US18: Siblings Should Not Marry
         if fam.children and len(fam.children) > 1:
             for i in range(len(fam.children)):
                 for j in range(i + 1, len(fam.children)):
-                    if any(fam.children[i] in [f.husband, f.wife] and fam.children[j] in [f.husband, f.wife] for f in families):
+                    if any(fam.children[i] in [f.husband, f.wife] and fam.children[j] in [f.husband, f.wife] for f in
+                           families):
                         sibling_marriage = True
                         print("{} and {} are married siblings.".format(get_individual(fam.children[i]).name,
-                                                                          get_individual(fam.children[j]).name))
+                                                                       get_individual(fam.children[j]).name))
 
     if sibling_marriage:
         print("Some siblings are married.")
@@ -566,7 +628,8 @@ def list_recent_births():  # US35: List Recent Births
     recent_births = []
 
     for person in individuals:
-        if person.birth is not None and datetime.now().date() - timedelta(days=365) <= person.birth <= datetime.now().date():
+        if person.birth is not None and datetime.now().date() - timedelta(
+                days=365) <= person.birth <= datetime.now().date():
             recent_births.append(person)
 
     return recent_births
@@ -576,7 +639,8 @@ def list_recent_deaths():  # US36: List Recent Deaths
     recent_deaths = []
 
     for person in individuals:
-        if person.death is not None and datetime.now().date() - timedelta(days=365) <= person.death <= datetime.now().date():
+        if person.death is not None and datetime.now().date() - timedelta(
+                days=365) <= person.death <= datetime.now().date():
             recent_deaths.append(person)
 
     return recent_deaths
@@ -592,7 +656,9 @@ def main():
     marriage_before_divorce()  # US04
     marriage_before_death()  # US05
     divorce_before_death()  # US06
+    less_than_150_years_old()  # US07
     birth_before_parents_death()  # US09
+    marriage_after_fourteen()  # US10
     no_bigamy()  # US11
     parents_not_too_old()  # US12
     sibling_age_space()  # US13

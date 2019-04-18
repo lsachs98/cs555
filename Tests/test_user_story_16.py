@@ -1,7 +1,5 @@
 import unittest
 from parse_gedcom import *
-from io import StringIO
-from contextlib import redirect_stdout
 
 
 class TestUserStory16(unittest.TestCase):
@@ -32,53 +30,35 @@ class TestUserStory16(unittest.TestCase):
         families.clear()
 
     def test_no_children(self):
-        capture = StringIO()
+        table = []
         families.clear()
-
-        with redirect_stdout(capture):
-            male_last_names()
-
-        self.assertIn("All male children have their father's last name.", capture.getvalue().strip().split("\n"))
+        male_last_names(table)
+        self.assertTrue(table[0][3])
 
     def test_daughters(self):
-        capture = StringIO()
-
+        table = []
         get_individual("I2").sex = "F"
         get_individual("I3").sex = "F"
-
-        with redirect_stdout(capture):
-            male_last_names()
-
-        self.assertIn("All male children have their father's last name.", capture.getvalue().strip().split("\n"))
+        male_last_names(table)
+        self.assertTrue(table[0][3])
 
     def test_sons_match_father(self):
-        capture = StringIO()
-
-        with redirect_stdout(capture):
-            male_last_names()
-
-        self.assertIn("All male children have their father's last name.", capture.getvalue().strip().split("\n"))
+        table = []
+        male_last_names(table)
+        self.assertTrue(table[0][3])
 
     def test_one_son_matches_father(self):
-        capture = StringIO()
-
+        table = []
         get_individual("I3").name = "David /Doe/"
-
-        with redirect_stdout(capture):
-            male_last_names()
-
-        self.assertIn("Some male children don't have their father's last name.", capture.getvalue().strip().split("\n"))
+        male_last_names(table)
+        self.assertFalse(table[0][3])
 
     def test_no_son_matches_father(self):
-        capture = StringIO()
-
+        table = []
         get_individual("I2").name = "John /Smith/"
         get_individual("I3").name = "David /Doe/"
-
-        with redirect_stdout(capture):
-            male_last_names()
-
-        self.assertIn("Some male children don't have their father's last name.", capture.getvalue().strip().split("\n"))
+        male_last_names(table)
+        self.assertFalse(table[0][3])
 
 
 if __name__ == '__main__':

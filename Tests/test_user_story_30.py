@@ -27,7 +27,9 @@ class TestUserStory30(unittest.TestCase):
 
     def test_empty_file(self):
         individuals.clear()
-        self.assertFalse(list_living_single())
+        table = []
+        list_living_married(table)
+        self.assertFalse(table[0][4].split()) and self.assertTrue(table[0][3])
 
     def test_some_married_and_some_deceased(self):
         get_individual("I2").name = "Married /Living2/"
@@ -37,7 +39,9 @@ class TestUserStory30(unittest.TestCase):
         get_individual("I3").death = datetime.strptime("20 AUG 2000", "%d %b %Y").date()
         get_individual("I4").name = "Single /Deceased4/"
         get_individual("I4").death = datetime.strptime("20 AUG 2000", "%d %b %Y").date()
-        self.assertCountEqual([get_individual("I2")], list_living_married())
+        table = []
+        list_living_married(table)
+        self.assertCountEqual([get_individual("I2").name], table[0][4].split("\n")) and self.assertTrue(table[0][3])
 
     def test_some_married_and_all_deceased(self):
         get_individual("I1").name = "Single /Deceased1/"
@@ -50,14 +54,18 @@ class TestUserStory30(unittest.TestCase):
         get_individual("I3").death = datetime.strptime("20 AUG 2000", "%d %b %Y").date()
         get_individual("I4").name = "Single /Deceased4/"
         get_individual("I4").death = datetime.strptime("20 AUG 2000", "%d %b %Y").date()
-        self.assertFalse(list_living_married())
+        table = []
+        list_living_married(table)
+        self.assertFalse(table[0][4].split()) and self.assertTrue(table[0][3])
 
     def test_some_married_and_no_deceased(self):
         get_individual("I2").name = "Married /Living2/"
         get_individual("I2").spouse_id = "F1"
         get_individual("I3").name = "Married /Living3/"
         get_individual("I3").spouse_id = "F1"
-        self.assertCountEqual([get_individual("I2"), get_individual("I3")], list_living_married())
+        table = []
+        list_living_married(table)
+        self.assertCountEqual([get_individual("I2").name, get_individual("I3").name], table[0][4].split("\n")) and self.assertTrue(table[0][3])
 
     def test_all_married_and_some_deceased(self):
         families.append(Family("F2"))
@@ -69,14 +77,18 @@ class TestUserStory30(unittest.TestCase):
         get_individual("I4").death = datetime.strptime("20 AUG 2000", "%d %b %Y").date()
         get_individual("I2").spouse_id = "F1"
         get_individual("I3").spouse_id = "F1"
-        self.assertCountEqual([get_individual("I2"), get_individual("I3")], list_living_married())
+        table = []
+        list_living_married(table)
+        self.assertCountEqual([get_individual("I2").name, get_individual("I3").name], table[0][4].split("\n")) and self.assertTrue(table[0][3])
 
     def test_no_married_and_some_deceased(self):
         get_individual("I2").name = "Single /Deceased2/"
         get_individual("I2").death = datetime.strptime("20 AUG 2000", "%d %b %Y").date()
         get_individual("I3").name = "Single /Deceased3/"
         get_individual("I3").death = datetime.strptime("20 AUG 2000", "%d %b %Y").date()
-        self.assertFalse(list_living_married())
+        table = []
+        list_living_married(table)
+        self.assertFalse(table[0][4].split()) and self.assertTrue(table[0][3])
 
 
 if __name__ == "__main__":

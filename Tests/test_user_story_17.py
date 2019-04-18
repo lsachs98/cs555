@@ -1,7 +1,5 @@
 import unittest
 from parse_gedcom import *
-from io import StringIO
-from contextlib import redirect_stdout
 
 
 class TestUserStory17(unittest.TestCase):
@@ -71,16 +69,12 @@ class TestUserStory17(unittest.TestCase):
         families.clear()
 
     def test_no_ancestor_descendant_marriages(self):
-        capture = StringIO()
-
-        with redirect_stdout(capture):
-            no_marriage_to_descendants()
-
-        self.assertIn("No ancestors are married to descendants.", capture.getvalue().strip().split("\n"))
+        table = []
+        no_marriage_to_descendants(table)
+        self.assertTrue(table[0][3])
 
     def test_immediate_ancestor_descendant_marriage(self):
-        capture = StringIO()
-
+        table = []
         get_family("F1").divorce = datetime.strptime("21 MAY 1998", "%d %b %Y").date()
         get_individual("I3").spouse_id = "F3"
         get_individual("I2").spouse_id = "F3"
@@ -90,15 +84,11 @@ class TestUserStory17(unittest.TestCase):
         incest.wife = "I2"
         incest.marriage = datetime.strptime("3 MAR 2000", "%d %b %Y").date()
         families.append(incest)
-
-        with redirect_stdout(capture):
-            no_marriage_to_descendants()
-
-        self.assertIn("Some ancestors are married to descendants.", capture.getvalue().strip().split("\n"))
+        no_marriage_to_descendants(table)
+        self.assertFalse(table[0][3])
 
     def test_grandchild_ancestor_descendant_marriages(self):
-        capture = StringIO()
-
+        table = []
         get_family("F1").divorce = datetime.strptime("21 MAY 1998", "%d %b %Y").date()
         get_individual("I4").spouse_id = "F3"
         get_individual("I6").spouse_id = "F3"
@@ -108,11 +98,8 @@ class TestUserStory17(unittest.TestCase):
         incest.wife = "I4"
         incest.marriage = datetime.strptime("3 MAR 2000", "%d %b %Y").date()
         families.append(incest)
-
-        with redirect_stdout(capture):
-            no_marriage_to_descendants()
-
-        self.assertIn("Some ancestors are married to descendants.", capture.getvalue().strip().split("\n"))
+        no_marriage_to_descendants(table)
+        self.assertFalse(table[0][3])
 
 
 if __name__ == '__main__':

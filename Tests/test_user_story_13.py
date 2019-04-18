@@ -1,7 +1,5 @@
 import unittest
 from parse_gedcom import *
-from io import StringIO
-from contextlib import redirect_stdout
 
 
 class TestUserStory13(unittest.TestCase):
@@ -49,40 +47,28 @@ class TestUserStory13(unittest.TestCase):
         families.clear()
 
     def test_twins_pass(self):
-        capture = StringIO()
-
-        with redirect_stdout(capture):
-            sibling_age_space()
-
-        self.assertIn("All sibling ages are spaced properly.", capture.getvalue().strip().split("\n"))
+        table = []
+        sibling_age_space(table)
+        self.assertTrue(table[0][3])
 
     def test_twins_fail(self):
-        capture = StringIO()
         get_individual("I1").birth = datetime.strptime("21 APR 1987", "%d %b %Y").date()
         get_individual("I2").birth = datetime.strptime("24 APR 1987", "%d %b %Y").date()
-
-        with redirect_stdout(capture):
-            sibling_age_space()
-
-        self.assertIn("Some sibling ages are not spaced properly.", capture.getvalue().strip().split("\n"))
+        table = []
+        sibling_age_space(table)
+        self.assertFalse(table[0][3])
 
     def test_sibling_pass(self):
-        capture = StringIO()
-
-        with redirect_stdout(capture):
-            sibling_age_space()
-
-        self.assertIn("All sibling ages are spaced properly.", capture.getvalue().strip().split("\n"))
+        table = []
+        sibling_age_space(table)
+        self.assertTrue(table[0][3])
 
     def test_sibling_fail(self):
-        capture = StringIO()
+        table = []
         get_individual("I1").birth = datetime.strptime("21 APR 1987", "%d %b %Y").date()
         get_individual("I2").birth = datetime.strptime("24 JUN 1987", "%d %b %Y").date()
-
-        with redirect_stdout(capture):
-            sibling_age_space()
-
-        self.assertIn("Some sibling ages are not spaced properly.", capture.getvalue().strip().split("\n"))
+        sibling_age_space(table)
+        self.assertFalse(table[0][3])
 
 
 if __name__ == '__main__':

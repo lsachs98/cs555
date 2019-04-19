@@ -65,7 +65,8 @@ class TestUserStory30(unittest.TestCase):
         get_individual("I3").spouse_id = "F1"
         table = []
         list_living_married(table)
-        self.assertCountEqual([get_individual("I2").name, get_individual("I3").name], table[0][4].split("\n")) and self.assertTrue(table[0][3])
+        self.assertCountEqual([get_individual("I2").name, get_individual("I3").name],
+                              table[0][4].split("\n")) and self.assertTrue(table[0][3])
 
     def test_all_married_and_some_deceased(self):
         families.append(Family("F2"))
@@ -79,7 +80,8 @@ class TestUserStory30(unittest.TestCase):
         get_individual("I3").spouse_id = "F1"
         table = []
         list_living_married(table)
-        self.assertCountEqual([get_individual("I2").name, get_individual("I3").name], table[0][4].split("\n")) and self.assertTrue(table[0][3])
+        self.assertCountEqual([get_individual("I2").name, get_individual("I3").name],
+                              table[0][4].split("\n")) and self.assertTrue(table[0][3])
 
     def test_no_married_and_some_deceased(self):
         get_individual("I2").name = "Single /Deceased2/"

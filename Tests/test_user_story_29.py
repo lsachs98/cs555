@@ -52,7 +52,8 @@ class TestUserStory29(unittest.TestCase):
         get_individual("I3").death = datetime.strptime("20 AUG 2000", "%d %b %Y").date()
         table = []
         list_deceased(table)
-        self.assertCountEqual([get_individual("I1").name, get_individual("I2").name, get_individual("I3").name], table[0][4].split("\n")) and self.assertTrue(table[0][3])
+        self.assertCountEqual([get_individual("I1").name, get_individual("I2").name, get_individual("I3").name],
+                              table[0][4].split("\n")) and self.assertTrue(table[0][3])
 
     def test_all_deceased(self):
         get_individual("I1").name = "Is /Deceased1/"
@@ -65,7 +66,8 @@ class TestUserStory29(unittest.TestCase):
         get_individual("I4").death = datetime.strptime("20 AUG 2000", "%d %b %Y").date()
         table = []
         list_deceased(table)
-        self.assertCountEqual([get_individual("I1").name, get_individual("I2").name, get_individual("I3").name, get_individual("I4").name], table[0][4].split("\n")) and self.assertTrue(table[0][3])
+        self.assertCountEqual([get_individual("I1").name, get_individual("I2").name, get_individual("I3").name,
+                               get_individual("I4").name], table[0][4].split("\n")) and self.assertTrue(table[0][3])
 
 
 if __name__ == "__main__":

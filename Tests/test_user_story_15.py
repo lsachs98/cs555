@@ -18,7 +18,7 @@ class TestUserStory15(unittest.TestCase):
     def test_less_than_15_kids(self):
         table = []
         for i in range(14):
-            get_family("F1").children.append(Individual("I{}".format(i+1)))
+            get_family("F1").children.append(Individual("I{}".format(i + 1)))
 
         fewer_than_fifteen_siblings(table)
         self.assertTrue(table[0][3])
@@ -26,7 +26,7 @@ class TestUserStory15(unittest.TestCase):
     def test_more_than_15_kids(self):
         table = []
         for i in range(20):
-            get_family("F1").children.append(Individual("I{}".format(i+1)))
+            get_family("F1").children.append(Individual("I{}".format(i + 1)))
 
         fewer_than_fifteen_siblings(table)
         self.assertFalse(table[0][3])
@@ -34,7 +34,7 @@ class TestUserStory15(unittest.TestCase):
     def test_exactly_15_kids(self):
         table = []
         for i in range(15):
-            get_family("F1").children.append(Individual("I{}".format(i+1)))
+            get_family("F1").children.append(Individual("I{}".format(i + 1)))
 
         fewer_than_fifteen_siblings(table)
         self.assertFalse(table[0][3])

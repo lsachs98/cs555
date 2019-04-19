@@ -34,14 +34,16 @@ class TestUserStory35(unittest.TestCase):
     def test_mixed_births(self):
         table = []
         list_recent_births(table)
-        self.assertCountEqual([get_individual("I1").name, get_individual("I4").name], table[0][4].split("\n")) and self.assertTrue(table[0][3])
+        self.assertCountEqual([get_individual("I1").name, get_individual("I4").name],
+                              table[0][4].split("\n")) and self.assertTrue(table[0][3])
 
     def test_all_recent_births(self):
         get_individual("I2").birth = datetime.strptime("19 AUG 2018", "%d %b %Y").date()
         get_individual("I3").birth = datetime.strptime("19 AUG 2018", "%d %b %Y").date()
         table = []
         list_recent_births(table)
-        self.assertCountEqual([get_individual("I1").name, get_individual("I2").name, get_individual("I3").name, get_individual("I4").name], table[0][4].split("\n")) and self.assertTrue(table[0][3])
+        self.assertCountEqual([get_individual("I1").name, get_individual("I2").name, get_individual("I3").name,
+                               get_individual("I4").name], table[0][4].split("\n")) and self.assertTrue(table[0][3])
 
     def test_all_far_births(self):
         get_individual("I1").birth = datetime.strptime("20 AUG 1998", "%d %b %Y").date()

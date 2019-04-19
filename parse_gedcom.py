@@ -285,25 +285,25 @@ def birth_before_marriage(table):  # US02: Birth Before Marriage
 
 
 def birth_before_death(table):  # US03: Birth Before Death
-    bbeforedeath = True
+    born_before_death = True
     notes = []
     for ind in individuals:
         if ind.death is not None and ind.death < ind.birth:
-            notes.append("{} has a birth date before his death.".format(ind.name))
+            notes.append("{} has a birth date after their death.".format(ind.name))
             notes.append("Birth is: {} and Death is: {}".format(format_date(ind.birth), format_date(ind.death)))
-            bbeforedeath = False
+            born_before_death = False
 
-    if bbeforedeath:
+    if born_before_death:
         result = "All birth and death dates are valid."
     else:
         result = "One or more people has a birth date before their death."
 
     table.append(
-        ["US03", "Birth Before Death", "\n".join(notes), bbeforedeath, result])
+        ["US03", "Birth Before Death", "\n".join(notes), born_before_death, result])
 
 
 def marriage_before_divorce(table):  # US04: Marriage Before Divorce
-    marbeforediv = True
+    marry_before_divorce = True
     notes = []
     for fam in families:
         if fam.divorce is not None and fam.marriage is not None:
@@ -312,19 +312,19 @@ def marriage_before_divorce(table):  # US04: Marriage Before Divorce
                                                                                      get_individual(fam.wife)))
                 notes.append(
                     "Marriage is: {} and divorce is: {}".format(format_date(fam.marriage), format_date(fam.divorce)))
-                marbeforediv = False
+                marry_before_divorce = False
 
-    if marbeforediv:
+    if marry_before_divorce:
         result = "All marriage and divorce dates are correct."
     else:
         result = "One or more marriage/divorce dates are incorrect."
 
     table.append(
-        ["US04", "Marriage Before Divorce", "\n".join(notes), marbeforediv, result])
+        ["US04", "Marriage Before Divorce", "\n".join(notes), marry_before_divorce, result])
 
 
 def marriage_before_death(table):  # US05: Marriage Before Death
-    marbeforedeat = True
+    marry_before_dead = True
     notes = []
     for fam in families:
         for ind in individuals:
@@ -335,40 +335,39 @@ def marriage_before_death(table):  # US05: Marriage Before Death
                             notes.append("{} has an incorrect marriage and/or death date.".format(ind.name))
                             notes.append("Marriage is: {} and Death is: {}".format(format_date(fam.marriage),
                                                                                    format_date(ind.death)))
-                            marbeforedeat = False
+                            marry_before_dead = False
 
-    if marbeforedeat:
+    if marry_before_dead:
         result = "All marriages are before death dates."
     else:
         result = "One or more marriages are not before death dates"
 
     table.append(
-        ["US05", "Marriage Before Death", "\n".join(notes), marbeforedeat, result])
+        ["US05", "Marriage Before Death", "\n".join(notes), marry_before_dead, result])
 
 
 def divorce_before_death(table):  # US06: Divorce Before Death
-    divbeforedeat = True
+    divorce_before_dead = True
     notes = []
     for fam in families:
-        wifename = get_individual(fam.wife).name
-        hubbyname = get_individual(fam.husband).name
+        wife_name = get_individual(fam.wife).name
+        hubby_name = get_individual(fam.husband).name
 
         for ind in individuals:
-            personname = ind.name
             if fam.divorce is not None:
-                if personname == wifename or personname == hubbyname:
+                if ind.name == wife_name or ind.name == hubby_name:
                     if ind.death is not None and ind.death < fam.divorce:
-                        notes.append("{} has an incorrect divorce and/or death date.".format(personname))
+                        notes.append("{} has an incorrect divorce and/or death date.".format(ind.name))
                         notes.append(
                             "Divorce is: {} and Death is: {}".format(format_date(fam.divorce), format_date(ind.death)))
-                        divbeforedeat = False
-    if divbeforedeat:
+                        divorce_before_dead = False
+    if divorce_before_dead:
         result = "All divorces are before death dates."
     else:
         result = "One or more divorces are not before death dates"
 
     table.append(
-        ["US06", "Divorce Before Death", "\n".join(notes), divbeforedeat, result])
+        ["US06", "Divorce Before Death", "\n".join(notes), divorce_before_dead, result])
 
 
 def less_than_150_years_old(table):  # US07: Less Than 150 Years Old

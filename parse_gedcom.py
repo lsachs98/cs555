@@ -708,10 +708,7 @@ def list_recent_deaths(table):  # US36: List Recent Deaths
         ["US36", "List Recent Deaths", "", True, "\n".join(recent_deaths)])
 
 
-def main():
-    process_file(read_file())
-    print("--- Individuals ---\n{}\n".format(print_individuals()))
-    print("--- Families ---\n{}\n".format(print_families()))
+def run_stories():
     headers = ["User Story", "Description", "Notes", "Pass", "Result"]
     table = []
     dates_before_today(table)  # US01
@@ -736,7 +733,15 @@ def main():
     list_living_single(table)  # US31
     list_recent_births(table)  # US35
     list_recent_deaths(table)  # US36
-    print(tabulate(table, headers, tablefmt="fancy_grid"))
+
+    return tabulate(table, headers, tablefmt="fancy_grid")
+
+
+def main():
+    process_file(read_file())
+    print("--- Individuals ---\n{}\n".format(print_individuals()))
+    print("--- Families ---\n{}\n".format(print_families()))
+    print("--- User Stories ---\n{}".format(run_stories()))
 
 
 if __name__ == '__main__':

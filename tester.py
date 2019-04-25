@@ -4,6 +4,8 @@ from Tests.test_user_story_09 import TestUserStory09
 from Tests.test_user_story_11 import TestUserStory11
 from Tests.test_user_story_12 import TestUserStory12
 from Tests.test_user_story_13 import TestUserStory13
+from Tests.test_user_story_15 import TestUserStory15
+from Tests.test_user_story_16 import TestUserStory16
 from Tests.test_user_story_17 import TestUserStory17
 from Tests.test_user_story_18 import TestUserStory18
 from Tests.test_user_story_28 import TestUserStory28
@@ -18,6 +20,7 @@ def test():
     loader = unittest.TestLoader()
     suites = [loader.loadTestsFromTestCase(TestUserStory09), loader.loadTestsFromTestCase(TestUserStory11),
               loader.loadTestsFromTestCase(TestUserStory12), loader.loadTestsFromTestCase(TestUserStory13),
+              loader.loadTestsFromTestCase(TestUserStory15), loader.loadTestsFromTestCase(TestUserStory16),
               loader.loadTestsFromTestCase(TestUserStory17), loader.loadTestsFromTestCase(TestUserStory18),
               loader.loadTestsFromTestCase(TestUserStory28), loader.loadTestsFromTestCase(TestUserStory29),
               loader.loadTestsFromTestCase(TestUserStory30), loader.loadTestsFromTestCase(TestUserStory31),

@@ -27,15 +27,21 @@ class TestUserStory29(unittest.TestCase):
 
     def test_empty_file(self):
         individuals.clear()
-        self.assertFalse(list_deceased())
+        table = []
+        list_deceased(table)
+        self.assertFalse(table[0][4].split()) and self.assertTrue(table[0][3])
 
     def test_no_deceased(self):
-        self.assertFalse(list_deceased())
+        table = []
+        list_deceased(table)
+        self.assertFalse(table[0][4].split()) and self.assertTrue(table[0][3])
 
     def test_one_deceased(self):
         get_individual("I1").name = "Is /Deceased1/"
         get_individual("I1").death = datetime.strptime("20 AUG 2000", "%d %b %Y").date()
-        self.assertCountEqual([get_individual("I1")], list_deceased())
+        table = []
+        list_deceased(table)
+        self.assertCountEqual([get_individual("I1").name], table[0][4].split("\n")) and self.assertTrue(table[0][3])
 
     def test_many_deceased(self):
         get_individual("I1").name = "Is /Deceased1/"
@@ -44,7 +50,10 @@ class TestUserStory29(unittest.TestCase):
         get_individual("I2").death = datetime.strptime("20 AUG 2000", "%d %b %Y").date()
         get_individual("I3").name = "Is /Deceased3/"
         get_individual("I3").death = datetime.strptime("20 AUG 2000", "%d %b %Y").date()
-        self.assertCountEqual([get_individual("I1"), get_individual("I2"), get_individual("I3")], list_deceased())
+        table = []
+        list_deceased(table)
+        self.assertCountEqual([get_individual("I1").name, get_individual("I2").name, get_individual("I3").name],
+                              table[0][4].split("\n")) and self.assertTrue(table[0][3])
 
     def test_all_deceased(self):
         get_individual("I1").name = "Is /Deceased1/"
@@ -55,7 +64,10 @@ class TestUserStory29(unittest.TestCase):
         get_individual("I3").death = datetime.strptime("20 AUG 2000", "%d %b %Y").date()
         get_individual("I4").name = "Is /Deceased4/"
         get_individual("I4").death = datetime.strptime("20 AUG 2000", "%d %b %Y").date()
-        self.assertCountEqual([get_individual("I1"), get_individual("I2"), get_individual("I3"), get_individual("I4")], list_deceased())
+        table = []
+        list_deceased(table)
+        self.assertCountEqual([get_individual("I1").name, get_individual("I2").name, get_individual("I3").name,
+                               get_individual("I4").name], table[0][4].split("\n")) and self.assertTrue(table[0][3])
 
 
 if __name__ == "__main__":

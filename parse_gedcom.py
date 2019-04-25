@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from tabulate import tabulate
 
 individuals = []
 families = []
@@ -33,23 +34,6 @@ def read_file():
     return lines
 
 
-def process_family(lines, index, new_family):
-    details = lines[index].split(" ", 2)
-    while details[0] != "0" and index < len(lines):
-        if details[0] == "1":
-            if details[1] == "HUSB":
-                new_family.husband = details[2].rstrip()
-            elif details[1] == "WIFE":
-                new_family.wife = details[2].rstrip()
-            elif details[1] == "CHIL":
-                new_family.children.append(details[2].rstrip())
-            elif details[1].rstrip() == "MARR" or details[1].rstrip() == "DIV":
-                process_date(new_family, lines[index + 1].split(" ", 2), details[1].rstrip())
-        index += 1
-        details = lines[index].split(" ", 2)
-    families.append(new_family)
-
-
 def process_file(lines):
     index = 0
     while index < len(lines):
@@ -62,34 +46,6 @@ def process_file(lines):
         index += 1
     individuals.sort(key=lambda x: int(x.i_id[1:]))
     families.sort(key=lambda x: int(x.f_id[1:]))
-
-
-def print_individuals():
-    print("--- Individuals ---")
-    for ind in individuals:
-        print("{}:".format(ind.i_id))
-        print("\tName: {}".format(ind.name))
-        print("\tSex: {}".format(ind.sex))
-        print("\tBirthday: {}".format(format_date(ind.birth)))
-        print("\tAlive: {}".format(True if ind.death is None else False))
-        print("\tDeath: {}".format(format_date(ind.death) if ind.death is not None else "NA"))
-        print("\tChildren: {}".format(ind.child_id))
-        print("\tSpouse: {}".format(ind.spouse_id))
-    print()
-
-
-def print_families():
-    print("--- Families ---")
-    for fam in families:
-        print("{}:".format(fam.f_id))
-        print("\tMarried: {}".format(format_date(fam.marriage) if fam.marriage is not None else "NA"))
-        print("\tDivorced: {}".format(format_date(fam.divorce) if fam.divorce is not None else "NA"))
-        print("\tHusband Id: {}".format(fam.husband))
-        print("\tHusband Name: {}".format(get_husband(fam.husband).name))
-        print("\tWife Id: {}".format(fam.wife))
-        print("\tWife Name: {}".format(get_wife(fam.wife).name))
-        print("\tChildren: {}".format(", ".join(fam.children)))
-    print()
 
 
 def process_date(obj, line, date_type):
@@ -111,7 +67,7 @@ def process_individual(lines, index, new_individual):
     while details[0] != "0" and index < len(lines):
         if details[0] == "1":
             if details[1] == "NAME":
-                new_individual.name = details[2].rstrip()
+                new_individual.name = details[2].strip().replace("/", "")
             elif details[1] == "SEX":
                 new_individual.sex = details[2].rstrip()
             elif details[1] == "FAMS":
@@ -123,6 +79,43 @@ def process_individual(lines, index, new_individual):
         index += 1
         details = lines[index].split(" ", 2)
     individuals.append(new_individual)
+
+
+def process_family(lines, index, new_family):
+    details = lines[index].split(" ", 2)
+    while details[0] != "0" and index < len(lines):
+        if details[0] == "1":
+            if details[1] == "HUSB":
+                new_family.husband = details[2].rstrip()
+            elif details[1] == "WIFE":
+                new_family.wife = details[2].rstrip()
+            elif details[1] == "CHIL":
+                new_family.children.append(details[2].rstrip())
+            elif details[1].rstrip() == "MARR" or details[1].rstrip() == "DIV":
+                process_date(new_family, lines[index + 1].split(" ", 2), details[1].rstrip())
+        index += 1
+        details = lines[index].split(" ", 2)
+    families.append(new_family)
+
+
+def print_individuals():
+    headers = ["Id", "Name", "Sex", "Birthday", "Alive", "Death", "Child Id", "Spouse Id"]
+    table = []
+    for ind in individuals:
+        table.append([ind.i_id, ind.name, ind.sex, format_date(ind.birth), True if ind.death is None else False,
+                      format_date(ind.death) if ind.death is not None else "NA", ind.child_id, ind.spouse_id])
+    return tabulate(table, headers, tablefmt="fancy_grid")
+
+
+def print_families():
+    headers = ["Id", "Married", "Divorced", "Husband Id", "Husband Name", "Wife Id", "Wife Name", "Children Ids"]
+    table = []
+    for fam in families:
+        table.append([fam.f_id, format_date(fam.marriage) if fam.marriage is not None else "NA",
+                      format_date(fam.divorce) if fam.divorce is not None else "NA", fam.husband,
+                      get_individual(fam.husband).name, fam.wife, get_individual(fam.wife).name,
+                      ", ".join(fam.children)])
+    return tabulate(table, headers, tablefmt="fancy_grid")
 
 
 def format_date(input_date):
@@ -145,71 +138,66 @@ def get_family(fam_id):
     return families[int(fam_id[1:]) - 1]
 
 
-def get_husband(husband_id):
-    return individuals[int(husband_id[1:]) - 1]
-
-
-def get_wife(wife_id):
-    return individuals[int(wife_id[1:]) - 1]
-
-
-def print_bigamy(ind, marriage_a, marriage_b):
+def print_bigamy(ind, marriage_a, marriage_b, notes):
     if ind.sex == "M":
-        print("{} committed bigamy with {} and {}".format(ind.name, get_wife(marriage_a.wife).name,
-                                                          get_wife(marriage_b.wife).name))
+        notes.append("{} committed bigamy with {} and {}".format(ind.name, get_individual(marriage_a.wife).name,
+                                                                 get_individual(marriage_b.wife).name))
     else:
-        print("{} committed bigamy with {} and {}".format(ind.name, get_husband(marriage_a.husband).name,
-                                                          get_husband(marriage_b.husband).name))
+        notes.append("{} committed bigamy with {} and {}".format(ind.name, get_individual(marriage_a.husband).name,
+                                                                 get_individual(marriage_b.husband).name))
 
 
-def check_bigamy_spouse_death(ind, marriage_a, marriage_b, bigamy):
+def check_bigamy_spouse_death(ind, marriage_a, marriage_b, bigamy, notes):
     if ind.sex == "M":  # check if either wife died
-        if get_wife(marriage_a.wife).death is not None and get_wife(marriage_a.wife).death >= marriage_b.marriage:
-            print_bigamy(ind, marriage_a, marriage_a)
+        if get_individual(marriage_a.wife).death is not None and get_individual(
+                marriage_a.wife).death >= marriage_b.marriage:
+            print_bigamy(ind, marriage_a, marriage_a, notes)
             bigamy = True
-        elif get_wife(marriage_b.wife).death is not None and get_wife(marriage_b.wife).death >= marriage_a.marriage:
-            print_bigamy(ind, marriage_a, marriage_b)
+        elif get_individual(marriage_b.wife).death is not None and get_individual(
+                marriage_b.wife).death >= marriage_a.marriage:
+            print_bigamy(ind, marriage_a, marriage_b, notes)
             bigamy = True
     else:  # check if either husband died
-        if get_husband(marriage_a.husband).death is not None and get_husband(
+        if get_individual(marriage_a.husband).death is not None and get_individual(
                 marriage_a.husband).death >= marriage_b.marriage:
-            print_bigamy(ind, marriage_a, marriage_b)
+            print_bigamy(ind, marriage_a, marriage_b, notes)
             bigamy = True
-        elif get_husband(marriage_b.husband).death is not None and get_husband(
+        elif get_individual(marriage_b.husband).death is not None and get_individual(
                 marriage_b.husband).death >= marriage_a.marriage:
-            print_bigamy(ind, marriage_a, marriage_b)
+            print_bigamy(ind, marriage_a, marriage_b, notes)
             bigamy = True
 
     return bigamy
 
 
-def check_bigamy_divorce_spouse_death(ind, marriage_a, marriage_b, bigamy):
+def check_bigamy_divorce_spouse_death(ind, marriage_a, marriage_b, bigamy, notes):
     if ind.sex == "M":  # check if either wife died
-        if get_wife(marriage_a.wife).death is None:
+        if get_individual(marriage_a.wife).death is None:
             if marriage_b.divorce >= marriage_a.marriage:
-                print_bigamy(ind, marriage_a, marriage_a)
+                print_bigamy(ind, marriage_a, marriage_a, notes)
                 bigamy = True
         else:
-            if marriage_b.divorce >= marriage_a.marriage or get_wife(marriage_a.wife).death >= marriage_b.marriage:
-                print_bigamy(ind, marriage_a, marriage_b)
+            if marriage_b.divorce >= marriage_a.marriage or get_individual(
+                    marriage_a.wife).death >= marriage_b.marriage:
+                print_bigamy(ind, marriage_a, marriage_b, notes)
                 bigamy = True
     else:  # check if either husband died
-        if get_husband(marriage_a.husband).death is None:
+        if get_individual(marriage_a.husband).death is None:
             if marriage_b.divorce >= marriage_a.marriage:
-                print_bigamy(ind, marriage_a, marriage_a)
+                print_bigamy(ind, marriage_a, marriage_a, notes)
                 bigamy = True
         else:
-            if marriage_b.divorce >= marriage_a.marriage or get_husband(
+            if marriage_b.divorce >= marriage_a.marriage or get_individual(
                     marriage_a.husband).death >= marriage_b.marriage:
-                print_bigamy(ind, marriage_a, marriage_b)
+                print_bigamy(ind, marriage_a, marriage_b, notes)
                 bigamy = True
 
     return bigamy
 
 
-def check_bigamy_divorce(ind, marriage_a, marriage_b, bigamy):
+def check_bigamy_divorce(ind, marriage_a, marriage_b, bigamy, notes):
     if marriage_a.marriage > marriage_b.divorce or marriage_b.marriage <= marriage_a.divorce:
-        print_bigamy(ind, marriage_a, marriage_b)
+        print_bigamy(ind, marriage_a, marriage_b, notes)
         bigamy = True
 
     return bigamy
@@ -237,135 +225,187 @@ def get_descendants(i_id):
     return descendants
 
 
-def dates_before_today():  # US01: Dates (Birth, Death, Marriage, Divorce) Before Today
+def dates_before_today(table):  # US01: Dates (Birth, Death, Marriage, Divorce) Before Today
     valid_dates = True
-
+    notes = []
     for ind in individuals:
         if ind.birth is not None and ind.birth > datetime.now().date():
-            print("{} born before current date, {}.".format(ind.name, format_date(ind.birth)))
+            notes.append("{} born before current date, {}.".format(ind.name, format_date(ind.birth)))
             valid_dates = False
         if ind.death is not None and ind.death > datetime.now().date():
-            print("{} died before current date, {}.".format(ind.name, format_date(ind.death)))
+            notes.append("{} died before current date, {}.".format(ind.name, format_date(ind.death)))
             valid_dates = False
 
     for fam in families:
-        wife_name = get_wife(fam.wife).name
-        hubby_name = get_husband(fam.husband).name
+        wife_name = get_individual(fam.wife).name
+        hubby_name = get_individual(fam.husband).name
 
         if fam.marriage is not None and fam.marriage > datetime.now().date():
-            print("{} {} married before current date, {}.".format(hubby_name, wife_name, format_date(fam.marriage)))
+            notes.append(
+                "{} {} married before current date, {}.".format(hubby_name, wife_name, format_date(fam.marriage)))
             valid_dates = False
 
         if fam.divorce is not None and fam.divorce > datetime.now().date():
-            print("{} {} divorced before current date, {}.".format(hubby_name, wife_name, format_date(fam.divorce)))
+            notes.append(
+                "{} {} divorced before current date, {}.".format(hubby_name, wife_name, format_date(fam.divorce)))
             valid_dates = False
 
     if valid_dates:
-        print("All dates are valid in this GEDCOM file.")
+        result = "All dates are valid in this GEDCOM file."
     else:
-        print("Not all dates are valid in this GEDCOM file.")
+        result = "Not all dates are valid in this GEDCOM file."
+
+    table.append(
+        ["US01", "Dates (Birth, Death, Marriage, Divorce) Before Today", "\n".join(notes), valid_dates, result])
 
 
-def birth_before_marriage():  # US02: Birth Before Marriage
+def birth_before_marriage(table):  # US02: Birth Before Marriage
     valid_marriage = True
+    notes = []
 
     for fam in families:
-        wife_name = get_wife(fam.wife).name
-        hubby_name = get_husband(fam.husband).name
+        wife_name = get_individual(fam.wife).name
+        hubby_name = get_individual(fam.husband).name
 
         for ind in individuals:
             if fam.marriage is not None:
                 if wife_name == ind.name or hubby_name == ind.name and fam.marriage < ind.birth:
-                    print("{} has an incorrect birth and/or marriage date.".format(ind.name))
-                    print("Birth is: {} and Marriage is: {}".format(format_date(ind.birth), format_date(fam.marriage)))
+                    notes.append("{} has an incorrect birth and/or marriage date.".format(ind.name))
+                    notes.append(
+                        "Birth is: {} and Marriage is: {}".format(format_date(ind.birth), format_date(fam.marriage)))
                     valid_marriage = False
 
     if valid_marriage:
-        print("All birth dates were correct")
+        result = "All birth dates were correct"
     else:
-        print("One or more birth/marriage dates were incorrect.")
+        result = "One or more birth/marriage dates were incorrect."
+
+    table.append(
+        ["US02", "Birth Before Marriage", "\n".join(notes), valid_marriage, result])
 
 
-def birth_before_death():  # US03: Birth Before Death
-    bbeforedeath = True
-
+def birth_before_death(table):  # US03: Birth Before Death
+    born_before_death = True
+    notes = []
     for ind in individuals:
         if ind.death is not None and ind.death < ind.birth:
-            print("{} has a birth date before his death.".format(ind.name))
-            print("Birth is: {} and Death is: {}".format(format_date(ind.birth), format_date(ind.death)))
-            bbeforedeath = False
+            notes.append("{} has a birth date after their death.".format(ind.name))
+            notes.append("Birth is: {} and Death is: {}".format(format_date(ind.birth), format_date(ind.death)))
+            born_before_death = False
 
-    if bbeforedeath:
-        print("All birth and death dates are valid.")
+    if born_before_death:
+        result = "All birth and death dates are valid."
     else:
-        print("One or more people has a birth date before their death.")
+        result = "One or more people has a birth date before their death."
+
+    table.append(
+        ["US03", "Birth Before Death", "\n".join(notes), born_before_death, result])
 
 
-def marriage_before_divorce():  # US04: Marriage before divorce
-    marbeforediv = True
+def marriage_before_divorce(table):  # US04: Marriage Before Divorce
+    marry_before_divorce = True
+    notes = []
     for fam in families:
         if fam.divorce is not None and fam.marriage is not None:
             if fam.divorce < fam.marriage:
-                print("{} and {} have a marriage before their divorce".format(get_individual(fam.husband),
-                                                                              get_individual(fam.wife)))
-                print("Marriage is: {} and divorce is: {}".format(format_date(fam.marriage), format_date(fam.divorce)))
-                marbeforediv = False
+                notes.append("{} and {} have a marriage before their divorce".format(get_individual(fam.husband),
+                                                                                     get_individual(fam.wife)))
+                notes.append(
+                    "Marriage is: {} and divorce is: {}".format(format_date(fam.marriage), format_date(fam.divorce)))
+                marry_before_divorce = False
 
-    if marbeforediv:
-        print("All marriage and divorce dates are true.")
+    if marry_before_divorce:
+        result = "All marriage and divorce dates are correct."
     else:
-        print("One or more marriage/divorce dates are incorrect.")
+        result = "One or more marriage/divorce dates are incorrect."
+
+    table.append(
+        ["US04", "Marriage Before Divorce", "\n".join(notes), marry_before_divorce, result])
 
 
-def marriage_before_death():  # US05: Marriage before death
-    marbeforedeat = True
+def marriage_before_death(table):  # US05: Marriage Before Death
+    marry_before_dead = True
+    notes = []
     for fam in families:
         for ind in individuals:
             if fam.marriage is not None:
-                if ind.name == get_wife(fam.wife).name or ind.name == get_husband(fam.husband).name:
+                if ind.name == get_individual(fam.wife).name or ind.name == get_individual(fam.husband).name:
                     if ind.death is not None:
                         if ind.death < fam.marriage:
-                            print("{} has an incorrect marriage and/or death date.".format(ind.name))
-                            print("Marriage is: {} and Death is: {}".format(format_date(fam.marriage),
-                                                                            format_date(ind.death)))
-                            marbeforedeat = False
+                            notes.append("{} has an incorrect marriage and/or death date.".format(ind.name))
+                            notes.append("Marriage is: {} and Death is: {}".format(format_date(fam.marriage),
+                                                                                   format_date(ind.death)))
+                            marry_before_dead = False
 
-    if marbeforedeat:
-        print("All marriages are before death dates.")
+    if marry_before_dead:
+        result = "All marriages are before death dates."
     else:
-        print("One or more marriages are not before death dates")
+        result = "One or more marriages are not before death dates"
+
+    table.append(
+        ["US05", "Marriage Before Death", "\n".join(notes), marry_before_dead, result])
 
 
-def divorce_before_death():  # US06: Divorce Before Death
-    divbeforedeat = True
-
+def divorce_before_death(table):  # US06: Divorce Before Death
+    divorce_before_dead = True
+    notes = []
     for fam in families:
-        wifename = get_wife(fam.wife).name
-        hubbyname = get_husband(fam.husband).name
+        wife_name = get_individual(fam.wife).name
+        hubby_name = get_individual(fam.husband).name
 
         for ind in individuals:
-            personname = ind.name
             if fam.divorce is not None:
-                if personname == wifename or personname == hubbyname:
+                if ind.name == wife_name or ind.name == hubby_name:
                     if ind.death is not None and ind.death < fam.divorce:
-                        print("{} has an incorrect divorce and/or death date.".format(personname))
-                        print("Divorce is: {} and Death is: {}".format(format_date(fam.divorce), format_date(ind.death)))
-                        divbeforedeat = False
-    if divbeforedeat:
-        print("All divorces are before death dates.")
+                        notes.append("{} has an incorrect divorce and/or death date.".format(ind.name))
+                        notes.append(
+                            "Divorce is: {} and Death is: {}".format(format_date(fam.divorce), format_date(ind.death)))
+                        divorce_before_dead = False
+    if divorce_before_dead:
+        result = "All divorces are before death dates."
     else:
-        print("One or more divorces are not before death dates")
+        result = "One or more divorces are not before death dates"
+
+    table.append(
+        ["US06", "Divorce Before Death", "\n".join(notes), divorce_before_dead, result])
 
 
-def birth_before_parents_death():  # US09: Birth Before Death of Parents
+def less_than_150_years_old(table):  # US07: Less Than 150 Years Old
+    right_age = True
+    notes = []
+    for ind in individuals:
+        if ind.death is None:
+            diff = datetime.now().date() - ind.birth
+            if (diff.days / 365.24) > 150:
+                notes.append(
+                    "{} is over 150 years old! Whaat?! Birthday is {}.".format(ind.name, format_date(ind.birth)))
+                right_age = False
+        else:
+            diff = ind.death - ind.birth
+            if (diff.days / 365.24) > 150:
+                notes.append(
+                    "{} was over 150 years old! Whaat?! Birthday is {} and Death is {}.".format(ind.name, format_date(
+                        ind.birth), format_date(ind.death)))
+                right_age = False
+
+    if right_age:
+        result = "Every person is within the right age range."
+    else:
+        result = "One or more individuals are not within the right age range."
+
+    table.append(
+        ["US07", "Less Than 150 Years Old", "\n".join(notes), right_age, result])
+
+
+def birth_before_parents_death(table):  # US09: Birth Before Death of Parents
     valid_birth = True
-
+    notes = []
     for ind in individuals:
         if ind.child_id is None:
             continue
 
-        husband = get_husband(get_husband_id(ind))  # get husband
-        wife = get_wife(get_wife_id(ind))  # get wife
+        husband = get_individual(get_husband_id(ind))  # get husband
+        wife = get_individual(get_wife_id(ind))  # get wife
 
         if husband.death is None and wife.death is None:  # if husband and wife are alive
             continue
@@ -374,24 +414,68 @@ def birth_before_parents_death():  # US09: Birth Before Death of Parents
                 continue
             else:
                 valid_birth = False
-                print("{} was born after death of parent(s).".format(ind.name))
+                notes.append("{} was born after death of parent(s).".format(ind.name))
         elif husband.death is not None and ind.birth < husband.death:  # if husband is dead
             continue
         elif wife.death is not None and ind.birth < wife.death:  # if wife is dead
             continue
         else:
             valid_birth = False
-            print("{} was born after death of parent(s).".format(ind.name))
+            notes.append("{} was born after death of parent(s).".format(ind.name))
 
     if valid_birth:
-        print("All birth dates were before parents' deaths.")
+        result = "All birth dates were before parents' deaths."
     else:
-        print("One or more birth dates were incorrect.")
+        result = "One or more birth dates were incorrect."
+
+    table.append(
+        ["US09", "Birth Before Death of Parents", "\n".join(notes), valid_birth, result])
 
 
-def no_bigamy():  # US11: No Bigamy
+def marriage_after_fourteen(table):  # US10: Marriage After 14
+    proper_marriage = True
+    notes = []
+    for fam in families:
+        if fam.marriage is None:
+            continue
+
+        wife = get_individual(fam.wife)
+        hubby = get_individual(fam.husband)
+
+        wife_marriage_age = (fam.marriage - wife.birth).days / 365.24
+        husband_marriage_age = (fam.marriage - hubby.birth).days / 365.24
+
+        if wife_marriage_age < 14 and husband_marriage_age < 14:
+            notes.append("{} and {} both got married before the age of 14!".format(wife.name, hubby.name))
+            notes.append("They got married on: {} and {}'s birth date is: {} and {}'s birth date is: {}".format(
+                format_date(fam.marriage),
+                wife.name, format_date(wife.birth), hubby.name, format_date(hubby.birth)))
+            proper_marriage = False
+        elif wife_marriage_age < 14:
+            notes.append("{} got married before the age of 14!".format(wife.name))
+            notes.append(
+                "{} got married on: {} and their birth date is: {}".format(wife.name, format_date(fam.marriage),
+                                                                           format_date(wife.birth)))
+            proper_marriage = False
+        elif husband_marriage_age < 14:
+            notes.append("{} got married before the age of 14!".format(hubby.name))
+            notes.append(
+                "{} got married on: {} and their birth date is: {}".format(hubby.name, format_date(fam.marriage),
+                                                                           format_date(hubby.birth)))
+            proper_marriage = False
+
+    if proper_marriage:
+        result = "Every person here got married at the right age."
+    else:
+        result = "Someone got married waaay too early."
+
+    table.append(
+        ["US10", "Marriage After 14", "\n".join(notes), proper_marriage, result])
+
+
+def no_bigamy(table):  # US11: No Bigamy
     bigamy = False
-
+    notes = []
     for ind in individuals:
         # Find all marriages for an individual
         marriages = []
@@ -406,65 +490,115 @@ def no_bigamy():  # US11: No Bigamy
         for i in range(len(marriages)):
             for j in range(i + 1, len(marriages)):
                 if marriages[i].divorce is None and marriages[j].divorce is None:  # Neither family are divorced
-                    bigamy = check_bigamy_spouse_death(ind, marriages[i], marriages[j], bigamy)
+                    bigamy = check_bigamy_spouse_death(ind, marriages[i], marriages[j], bigamy, notes)
                 elif marriages[i].divorce is None:  # Was Family A created before Family B divorce/death?
-                    bigamy = check_bigamy_divorce_spouse_death(ind, marriages[i], marriages[j], bigamy)
+                    bigamy = check_bigamy_divorce_spouse_death(ind, marriages[i], marriages[j], bigamy, notes)
                 elif marriages[j].divorce is None:  # Was Family B created before Family A divorce/death?
-                    bigamy = check_bigamy_divorce_spouse_death(ind, marriages[j], marriages[i], bigamy)
+                    bigamy = check_bigamy_divorce_spouse_death(ind, marriages[j], marriages[i], bigamy, notes)
                 else:  # Both families are divorced
-                    bigamy = check_bigamy_divorce(ind, marriages[i], marriages[j], bigamy)
+                    bigamy = check_bigamy_divorce(ind, marriages[i], marriages[j], bigamy, notes)
 
     if bigamy:
-        print("There are bigamy cases in this GEDCOM file.")
+        result = "There are bigamy cases in this GEDCOM file."
     else:
-        print("There are no bigamy cases in this GEDCOM file.")
+        result = "There are no bigamy cases in this GEDCOM file."
+
+    table.append(
+        ["US11", "No Bigamy", "\n".join(notes), not bigamy, result])
 
 
-def parents_not_too_old():  # US12: Parents Not Too Old
+def parents_not_too_old(table):  # US12: Parents Not Too Old
     too_old = False
-
+    notes = []
     for fam in families:
         if fam.children:
             mom = get_individual(fam.wife)
             dad = get_individual(fam.husband)
             for child_id in fam.children:
                 child = get_individual(child_id)
-                if abs(get_age(mom) - get_age(child)) > 60 and abs(get_age(dad) - get_age(child)) > 80:
-                    print("{}'s parents, {} and {}, are too old.".format(child.name, mom.name, dad.name))
+                if abs(get_age(mom) - get_age(child)) >= 60 and abs(get_age(dad) - get_age(child)) >= 80:
+                    notes.append("{}'s parents, {} and {}, are too old.".format(child.name, mom.name, dad.name))
                     too_old = True
-                elif abs(get_age(mom) - get_age(child)) > 60:
-                    print("{}'s mother, {}, is too old.".format(child.name, mom.name))
+                elif abs(get_age(mom) - get_age(child)) >= 60:
+                    notes.append("{}'s mother, {}, is too old.".format(child.name, mom.name))
                     too_old = True
-                elif abs(get_age(dad) - get_age(child)) > 80:
-                    print("{}'s father, {}, is too old.".format(child.name, dad.name))
+                elif abs(get_age(dad) - get_age(child)) >= 80:
+                    notes.append("{}'s father, {}, is too old.".format(child.name, dad.name))
                     too_old = True
 
     if too_old:
-        print("Some parents are too old in this GEDCOM file.")
+        result = "Some parents are too old in this GEDCOM file."
     else:
-        print("All parents are not too old in this GEDCOM file.")
+        result = "All parents are not too old in this GEDCOM file."
+
+    table.append(
+        ["US12", "Parents Not Too Old", "\n".join(notes), not too_old, result])
 
 
-def sibling_age_space():  # US13: Sibling Age Spacing
+def sibling_age_space(table):  # US13: Sibling Age Spacing
     sibling_space = True
+    notes = []
     for fam in families:
         if fam.children and len(fam.children) > 1:
             for i in range(len(fam.children)):
                 for j in range(i + 1, len(fam.children)):
                     if 2 < abs((get_individual(fam.children[i]).birth - get_individual(fam.children[j]).birth).days) < \
                             243.3:
-                        print("{} and {} are not spaced properly.".format(get_individual(fam.children[i]).name,
-                                                                          get_individual(fam.children[j]).name))
+                        notes.append("{} and {} are not spaced properly.".format(get_individual(fam.children[i]).name,
+                                                                                 get_individual(fam.children[j]).name))
                         sibling_space = False
 
     if sibling_space:
-        print("All sibling ages are spaced properly.")
+        result = "All sibling ages are spaced properly."
     else:
-        print("Some sibling ages are not spaced properly.")
+        result = "Some sibling ages are not spaced properly."
+
+    table.append(
+        ["US13", "Sibling Age Spacing", "\n".join(notes), sibling_space, result])
 
 
-def no_marriage_to_descendants():  # US17: No Marriage to Descendants
+def fewer_than_fifteen_siblings(table):  # US15: Fewer Than 15 Siblings
+    too_many_kids = False
+    notes = []
+    for fam in families:
+        if fam.children and len(fam.children) >= 15:
+            notes.append("Family {} has greater than 15 children.".format(fam.f_id))
+            too_many_kids = True
+
+    if too_many_kids:
+        result = "Some families have too many children."
+    else:
+        result = "All families have less than 15 children."
+
+    table.append(
+        ["US15", "Fewer Than 15 Siblings", "\n".join(notes), not too_many_kids, result])
+
+
+def male_last_names(table):  # US16: Male Last Names
+    fathers_last_name = True
+    notes = []
+    for fam in families:
+        if fam.children:
+            last_name = get_individual(fam.husband).name[get_individual(fam.husband).name.rfind(" "):]
+
+            for kid in fam.children:
+                if get_individual(kid).sex == "M" and last_name not in get_individual(kid).name:
+                    notes.append(
+                        "{} does not have his father's last name, {}".format(get_individual(kid).name, last_name))
+                    fathers_last_name = False
+
+    if fathers_last_name:
+        result = "All male children have their father's last name."
+    else:
+        result = "Some male children don't have their father's last name."
+
+    table.append(
+        ["US16", "Male Last Names", "\n".join(notes), fathers_last_name, result])
+
+
+def no_marriage_to_descendants(table):  # US17: No Marriage to Descendants
     descendant_marriage = False
+    notes = []
 
     for ind in individuals:
         descendants = get_descendants(ind.i_id)
@@ -472,118 +606,184 @@ def no_marriage_to_descendants():  # US17: No Marriage to Descendants
             for fam_id in get_individuals_families(ind.i_id):
                 if any(s_id in descendants for s_id in [get_family(fam_id).husband, get_family(fam_id).wife]):
                     if ind.i_id == get_family(fam_id).husband:
-                        print("{} is married to descendant, {}.".format(ind.name, get_wife(get_family(fam_id).wife).name))
+                        notes.append(
+                            "{} is married to descendant, {}.".format(ind.name,
+                                                                      get_individual(get_family(fam_id).wife).name))
                     else:
-                        print("{} is married to descendant, {}.".format(ind.name, get_husband(get_family(fam_id).husband).name))
+                        notes.append("{} is married to descendant, {}.".format(ind.name,
+                                                                               get_individual(
+                                                                                   get_family(fam_id).husband).name))
                     descendant_marriage = True
 
     if descendant_marriage:
-        print("Some ancestors are married to descendants.")
+        result = "Some ancestors are married to descendants."
     else:
-        print("No ancestors are married to descendants.")
+        result = "No ancestors are married to descendants."
+
+    table.append(
+        ["US17", "No Marriage to Descendants", "\n".join(notes), not descendant_marriage, result])
 
 
-def siblings_should_not_marry():  # US18: Siblings Should Not Marry
+def siblings_should_not_marry(table):  # US18: Siblings Should Not Marry
     sibling_marriage = False
-
+    notes = []
     for fam in families:
         if fam.children and len(fam.children) > 1:
             for i in range(len(fam.children)):
                 for j in range(i + 1, len(fam.children)):
-                    if any(fam.children[i] in [f.husband, f.wife] and fam.children[j] in [f.husband, f.wife] for f in families):
+                    if any(fam.children[i] in [f.husband, f.wife] and fam.children[j] in [f.husband, f.wife] for f in
+                           families):
                         sibling_marriage = True
-                        print("{} and {} are married siblings.".format(get_individual(fam.children[i]).name,
-                                                                          get_individual(fam.children[j]).name))
+                        notes.append("{} and {} are married siblings.".format(get_individual(fam.children[i]).name,
+                                                                              get_individual(fam.children[j]).name))
 
     if sibling_marriage:
-        print("Some siblings are married.")
+        result = "Some siblings are married."
     else:
-        print("All siblings are not married.")
+        result = "All siblings are not married."
+
+    table.append(
+        ["US18", "Siblings Should Not Marry", "\n".join(notes), not sibling_marriage, result])
 
 
-
-def order_children_by_age():  # US28: Order Siblings By Age
+def order_children_by_age(table):  # US28: Order Siblings By Age
     for fam in families:
         if fam.children:
             fam.children.sort(key=lambda child: get_individual(child).birth)
 
+    table.append(
+        ["US28", "Order Siblings By Age", "", True, "---Reordered Children---\n{}\n".format(print_families())])
 
-def list_deceased():  # US29: List Deceased
-    return [ind for ind in individuals if ind.death is not None]
+
+def list_deceased(table):  # US29: List Deceased
+    results = "\n".join([ind.name for ind in individuals if ind.death is not None])
+
+    table.append(
+        ["US29", "List Deceased", "", True, results])
 
 
-def list_living_married():  # US30: List Living Married
+def list_living_married(table):  # US30: List Living Married
     living_married = []
 
     for person in individuals:
         if person.spouse_id is not None and person.death is None:
-            living_married.append(person)
+            living_married.append(person.name)
 
-    return living_married
+    table.append(
+        ["US30", "List Living Married", "", True, "\n".join(living_married)])
 
 
-def list_living_single():  # US31: List Living Single
+def list_living_single(table):  # US31: List Living Single
     living_single = []
 
     for person in individuals:
         if person.spouse_id is None and person.death is None:
-            living_single.append(person)
+            living_single.append(person.name)
 
-    return living_single
+    table.append(
+        ["US31", "List Living Single", "", True, "\n".join(living_single)])
 
 
-def list_recent_births():  # US35: List Recent Births
+def list_recent_births(table):  # US35: List Recent Births
     recent_births = []
 
     for person in individuals:
-        if person.birth is not None and datetime.now().date() - timedelta(days=365) <= person.birth <= datetime.now().date():
-            recent_births.append(person)
+        if person.birth is not None and datetime.now().date() - timedelta(
+                days=365) <= person.birth <= datetime.now().date():
+            recent_births.append(person.name)
 
-    return recent_births
+    table.append(
+        ["US35", "List Recent Births", "", True, "\n".join(recent_births)])
 
 
-def list_recent_deaths():  # US36: List Recent Deaths
+def list_recent_deaths(table):  # US36: List Recent Deaths
     recent_deaths = []
 
     for person in individuals:
-        if person.death is not None and datetime.now().date() - timedelta(days=365) <= person.death <= datetime.now().date():
-            recent_deaths.append(person)
+        if person.death is not None and datetime.now().date() - timedelta(
+                days=365) <= person.death <= datetime.now().date():
+            recent_deaths.append(person.name)
 
-    return recent_deaths
+    table.append(
+        ["US36", "List Recent Deaths", "", True, "\n".join(recent_deaths)])
+
+
+def upcoming_birthdays(table):  # US38: Upcoming Birthdays
+    birthdays_upcoming = []
+
+    for person in individuals:
+        if person.birth is not None:
+            birthdate = datetime(datetime.now().year, person.birth.month, person.birth.day).date()
+            days_until_birthday = birthdate - datetime.today().date()
+
+            if birthdate > datetime.today().date() and days_until_birthday < timedelta(days=30):
+                birthdays_upcoming.append("{}'s birthday is coming soon, {}".format(person.name, person.birth))
+
+    table.append(
+        ["US38", "Upcoming Birthdays", "", True, "\n".join(birthdays_upcoming)])
+
+
+def date_validity_helper(this_date):
+    feb = 28
+
+    if (this_date.year % 4) == 0:
+        feb = 29
+
+    month_lengths = [31, feb, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+    return this_date.day < month_lengths[this_date.month - 1]
+
+
+def reject_illegitimate_birthdays(table):  # US42: Reject Illegitimate Birthdays
+    bad_date = []
+    bad_dates = False
+
+    for person in individuals:
+        if (person.birth is None or date_validity_helper(person.birth)) and (
+                person.death is None or date_validity_helper(person.death)):
+            bad_date.append("{} has a illegitimate birthday.".format(person.name))
+            bad_dates = True
+
+    table.append(
+        ["US42", "Reject Illegitimate Birthdays", "", not bad_dates, "\n".join(bad_date)])
+
+
+def run_stories():
+    headers = ["User Story", "Description", "Notes", "Pass", "Result"]
+    table = []
+    dates_before_today(table)  # US01
+    birth_before_marriage(table)  # US02
+    birth_before_death(table)  # US03
+    marriage_before_divorce(table)  # US04
+    marriage_before_death(table)  # US05
+    divorce_before_death(table)  # US06
+    less_than_150_years_old(table)  # US07
+    birth_before_parents_death(table)  # US09
+    marriage_after_fourteen(table)  # US10
+    no_bigamy(table)  # US11
+    parents_not_too_old(table)  # US12
+    sibling_age_space(table)  # US13
+    fewer_than_fifteen_siblings(table)  # US15
+    male_last_names(table)  # US16
+    no_marriage_to_descendants(table)  # US17
+    siblings_should_not_marry(table)  # US18
+    order_children_by_age(table)  # US28
+    list_deceased(table)  # US29
+    list_living_married(table)  # US30
+    list_living_single(table)  # US31
+    list_recent_births(table)  # US35
+    list_recent_deaths(table)  # US36
+    upcoming_birthdays(table)  # US38
+    reject_illegitimate_birthdays(table)  # #US42
+
+    return tabulate(table, headers, tablefmt="fancy_grid")
 
 
 def main():
     process_file(read_file())
-    print_individuals()
-    print_families()
-    dates_before_today()  # US01
-    birth_before_marriage()  # US02
-    birth_before_death()  # US03
-    marriage_before_divorce()  # US04
-    marriage_before_death()  # US05
-    divorce_before_death()  # US06
-    birth_before_parents_death()  # US09
-    no_bigamy()  # US11
-    parents_not_too_old()  # US12
-    sibling_age_space()  # US13
-    no_marriage_to_descendants()  # US17
-    siblings_should_not_marry()  # US18
-    order_children_by_age()  # US28
-    print("Deceased:")  # US29
-    for deceased in list_deceased():
-        print(deceased.name)
-    print("Living Married:")  # US30
-    for living in list_living_married():
-        print(living.name)
-    print("Living Single:")  # US31
-    for living in list_living_single():
-        print(living.name)
-    print("Recent Births:")  # US35
-    for born in list_recent_births():
-        print(born.name)
-    print("Living Deaths:")  # US36
-    for dead in list_recent_deaths():
-        print(dead.name)
+    print("--- Individuals ---\n{}\n".format(print_individuals()))
+    print("--- Families ---\n{}\n".format(print_families()))
+    print("--- User Stories ---\n{}".format(run_stories()))
 
 
 if __name__ == '__main__':

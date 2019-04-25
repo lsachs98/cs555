@@ -1,7 +1,5 @@
 import unittest
 from parse_gedcom import *
-from io import StringIO
-from contextlib import redirect_stdout
 
 
 class TestUserStory12(unittest.TestCase):
@@ -41,42 +39,30 @@ class TestUserStory12(unittest.TestCase):
         families.clear()
 
     def test_both_parents_too_old(self):
-        capture = StringIO()
         get_individual("I2").birth = datetime.strptime("19 SEP 1906", "%d %b %Y").date()
         get_individual("I3").birth = datetime.strptime("3 OCT 1926", "%d %b %Y").date()
-
-        with redirect_stdout(capture):
-            parents_not_too_old()
-
-        self.assertIn("Some parents are too old in this GEDCOM file.", capture.getvalue().strip().split("\n"))
+        table = []
+        parents_not_too_old(table)
+        self.assertFalse(table[0][3])
 
     def test_dad_too_old(self):
-        capture = StringIO()
         get_individual("I2").birth = datetime.strptime("19 SEP 1906", "%d %b %Y").date()
-
-        with redirect_stdout(capture):
-            parents_not_too_old()
-
-        self.assertIn("Some parents are too old in this GEDCOM file.", capture.getvalue().strip().split("\n"))
+        table = []
+        parents_not_too_old(table)
+        self.assertFalse(table[0][3])
 
     def test_mom_too_old(self):
-        capture = StringIO()
         get_individual("I3").birth = datetime.strptime("3 OCT 1926", "%d %b %Y").date()
-
-        with redirect_stdout(capture):
-            parents_not_too_old()
-
-        self.assertIn("Some parents are too old in this GEDCOM file.", capture.getvalue().strip().split("\n"))
+        table = []
+        parents_not_too_old(table)
+        self.assertFalse(table[0][3])
 
     def test_neither_parents_too_old(self):
-        capture = StringIO()
         get_individual("I2").birth = datetime.strptime("19 SEP 1960", "%d %b %Y").date()
         get_individual("I3").birth = datetime.strptime("3 OCT 1965", "%d %b %Y").date()
-
-        with redirect_stdout(capture):
-            parents_not_too_old()
-
-        self.assertIn("All parents are not too old in this GEDCOM file.", capture.getvalue().strip().split("\n"))
+        table = []
+        parents_not_too_old(table)
+        self.assertTrue(table[0][3])
 
 
 if __name__ == '__main__':

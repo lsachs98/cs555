@@ -31,20 +31,30 @@ class TestUserStory36(unittest.TestCase):
 
     def test_empty_file(self):
         individuals.clear()
-        self.assertFalse(list_recent_deaths())
+        table = []
+        list_recent_deaths(table)
+        self.assertFalse(table[0][4].split()) and self.assertTrue(table[0][3])
 
     def test_mixed_deaths(self):
-        self.assertCountEqual([get_individual("I1"), get_individual("I4")], list_recent_deaths())
+        table = []
+        list_recent_deaths(table)
+        self.assertCountEqual([get_individual("I1").name, get_individual("I4").name],
+                              table[0][4].split("\n")) and self.assertTrue(table[0][3])
 
     def test_all_recent_deaths(self):
         get_individual("I2").death = datetime.strptime("19 AUG 2018", "%d %b %Y").date()
         get_individual("I3").death = datetime.strptime("19 AUG 2018", "%d %b %Y").date()
-        self.assertCountEqual(individuals, list_recent_deaths())
+        table = []
+        list_recent_deaths(table)
+        self.assertCountEqual([get_individual("I1").name, get_individual("I2").name, get_individual("I3").name,
+                               get_individual("I4").name], table[0][4].split("\n")) and self.assertTrue(table[0][3])
 
     def test_all_far_deaths(self):
         get_individual("I1").death = datetime.strptime("20 AUG 2022", "%d %b %Y").date()
         get_individual("I4").death = datetime.strptime("20 AUG 2022", "%d %b %Y").date()
-        self.assertFalse(list_recent_deaths())
+        table = []
+        list_recent_deaths(table)
+        self.assertFalse(table[0][4].split()) and self.assertTrue(table[0][3])
 
 
 if __name__ == "__main__":

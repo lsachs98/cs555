@@ -1,7 +1,5 @@
 import unittest
 from parse_gedcom import *
-from io import StringIO
-from contextlib import redirect_stdout
 
 
 class TestUserStory18(unittest.TestCase):
@@ -63,23 +61,17 @@ class TestUserStory18(unittest.TestCase):
         families.clear()
 
     def test_siblings_marriage_pass(self):
-        capture = StringIO()
-
-        with redirect_stdout(capture):
-            siblings_should_not_marry()
-
-        self.assertIn("All siblings are not married.", capture.getvalue().strip().split("\n"))
+        table = []
+        siblings_should_not_marry(table)
+        self.assertTrue(table[0][3])
 
     def test_siblings_marriage_fail(self):
-        capture = StringIO()
+        table = []
         get_individual("I5").spouse_id = None
         get_individual("I2").spouse_id = "F2"
         get_family("F2").wife = "I2"
-
-        with redirect_stdout(capture):
-            siblings_should_not_marry()
-
-        self.assertIn("Some siblings are married.", capture.getvalue().strip().split("\n"))
+        siblings_should_not_marry(table)
+        self.assertFalse(table[0][3])
 
 
 if __name__ == '__main__':

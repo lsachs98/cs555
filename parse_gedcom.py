@@ -516,13 +516,13 @@ def parents_not_too_old(table):  # US12: Parents Not Too Old
             dad = get_individual(fam.husband)
             for child_id in fam.children:
                 child = get_individual(child_id)
-                if abs(get_age(mom) - get_age(child)) > 60 and abs(get_age(dad) - get_age(child)) > 80:
+                if abs(get_age(mom) - get_age(child)) >= 60 and abs(get_age(dad) - get_age(child)) >= 80:
                     notes.append("{}'s parents, {} and {}, are too old.".format(child.name, mom.name, dad.name))
                     too_old = True
-                elif abs(get_age(mom) - get_age(child)) > 60:
+                elif abs(get_age(mom) - get_age(child)) >= 60:
                     notes.append("{}'s mother, {}, is too old.".format(child.name, mom.name))
                     too_old = True
-                elif abs(get_age(dad) - get_age(child)) > 80:
+                elif abs(get_age(dad) - get_age(child)) >= 80:
                     notes.append("{}'s father, {}, is too old.".format(child.name, dad.name))
                     too_old = True
 

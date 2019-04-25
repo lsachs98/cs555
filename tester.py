@@ -14,6 +14,8 @@ from Tests.test_user_story_30 import TestUserStory30
 from Tests.test_user_story_31 import TestUserStory31
 from Tests.test_user_story_35 import TestUserStory35
 from Tests.test_user_story_36 import TestUserStory36
+from Tests.test_user_story_38 import TestUserStory38
+from Tests.test_user_story_42 import TestUserStory42
 
 
 def test():
@@ -24,7 +26,8 @@ def test():
               loader.loadTestsFromTestCase(TestUserStory17), loader.loadTestsFromTestCase(TestUserStory18),
               loader.loadTestsFromTestCase(TestUserStory28), loader.loadTestsFromTestCase(TestUserStory29),
               loader.loadTestsFromTestCase(TestUserStory30), loader.loadTestsFromTestCase(TestUserStory31),
-              loader.loadTestsFromTestCase(TestUserStory35), loader.loadTestsFromTestCase(TestUserStory36)]
+              loader.loadTestsFromTestCase(TestUserStory35), loader.loadTestsFromTestCase(TestUserStory36),
+              loader.loadTestsFromTestCase(TestUserStory38), loader.loadTestsFromTestCase(TestUserStory42)]
 
     unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite(suites))
 

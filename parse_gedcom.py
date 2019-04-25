@@ -778,6 +778,76 @@ def run_stories():
 
     return tabulate(table, headers, tablefmt="fancy_grid")
 
+def upcoming_birthdays(table):  # US38: Upcoming Birthdays
+    birthdays_upcoming = []
+
+    for person in individuals:
+        if person.birth is not None:
+            birthdate = datetime(datetime.now().year, person.birth.month, person.birth.day).date()
+            days_until_birthday = birthdate - datetime.today().date()
+
+            if birthdate > datetime.today().date() and days_until_birthday < timedelta(days=30):
+                birthdays_upcoming.append(person.name)
+
+    table.append(
+        ["US38", "Upcoming Birthdays", "", True, "\n".join(birthdays_upcoming)])
+
+
+def date_validity_helper(this_date):
+    feb = 28
+
+    if (this_date.year % 4) == 0:
+        feb = 29
+
+    month_lengths = [31, feb, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+    return this_date.day < month_lengths[this_date.month - 1]
+
+
+def reject_illegitimate_birthdays(table):  # US42: Reject Illegitimate Birthdays
+    bad_date = []
+    bad_dates = False
+
+    for person in individuals:
+        if not (person.birth is None or date_validity_helper(person.birth)) or not (
+                person.death is None or date_validity_helper(person.death)):
+            bad_date.append("{} has a illegitimate birthday.".format(person.name))
+            bad_dates = True
+
+    table.append(
+        ["US42", "Reject Illegitimate Birthdays", "", not bad_dates, "\n".join(bad_date)])
+
+
+def run_stories():
+    headers = ["User Story", "Description", "Notes", "Pass", "Result"]
+    table = []
+    dates_before_today(table)  # US01
+    birth_before_marriage(table)  # US02
+    birth_before_death(table)  # US03
+    marriage_before_divorce(table)  # US04
+    marriage_before_death(table)  # US05
+    divorce_before_death(table)  # US06
+    less_than_150_years_old(table)  # US07
+    birth_before_parents_death(table)  # US09
+    marriage_after_fourteen(table)  # US10
+    no_bigamy(table)  # US11
+    parents_not_too_old(table)  # US12
+    sibling_age_space(table)  # US13
+    fewer_than_fifteen_siblings(table)  # US15
+    male_last_names(table)  # US16
+    no_marriage_to_descendants(table)  # US17
+    siblings_should_not_marry(table)  # US18
+    order_children_by_age(table)  # US28
+    list_deceased(table)  # US29
+    list_living_married(table)  # US30
+    list_living_single(table)  # US31
+    list_recent_births(table)  # US35
+    list_recent_deaths(table)  # US36
+    upcoming_birthdays(table)  # US38
+    reject_illegitimate_birthdays(table)  # #US42
+
+    return tabulate(table, headers, tablefmt="fancy_grid")
+
 
 def main():
     process_file(read_file())

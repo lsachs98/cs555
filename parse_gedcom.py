@@ -708,6 +708,46 @@ def list_recent_deaths(table):  # US36: List Recent Deaths
         ["US36", "List Recent Deaths", "", True, "\n".join(recent_deaths)])
 
 
+def upcoming_birthdays(table):  # US38: Upcoming Birthdays
+    birthdays_upcoming = []
+
+    for person in individuals:
+        if person.birth is not None:
+            birthdate = datetime(datetime.now().year, person.birth.month, person.birth.day).date()
+            days_until_birthday = birthdate - datetime.today().date()
+
+            if birthdate > datetime.today().date() and days_until_birthday < timedelta(days=30):
+                birthdays_upcoming.append("{}'s birthday is coming soon, {}".format(person.name, person.birth))
+
+    table.append(
+        ["US38", "Upcoming Birthdays", "", True, "\n".join(birthdays_upcoming)])
+
+
+def date_validity_helper(this_date):
+    feb = 28
+
+    if (this_date.year % 4) == 0:
+        feb = 29
+
+    month_lengths = [31, feb, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+    return this_date.day < month_lengths[this_date.month - 1]
+
+
+def reject_illegitimate_birthdays(table):  # US42: Reject Illegitimate Birthdays
+    bad_date = []
+    bad_dates = False
+
+    for person in individuals:
+        if (person.birth is None or date_validity_helper(person.birth)) and (
+                person.death is None or date_validity_helper(person.death)):
+            bad_date.append("{} has a illegitimate birthday.".format(person.name))
+            bad_dates = True
+
+    table.append(
+        ["US42", "Reject Illegitimate Birthdays", "", not bad_dates, "\n".join(bad_date)])
+
+
 def run_stories():
     headers = ["User Story", "Description", "Notes", "Pass", "Result"]
     table = []
@@ -733,6 +773,8 @@ def run_stories():
     list_living_single(table)  # US31
     list_recent_births(table)  # US35
     list_recent_deaths(table)  # US36
+    upcoming_birthdays(table)  # US38
+    reject_illegitimate_birthdays(table)  # #US42
 
     return tabulate(table, headers, tablefmt="fancy_grid")
 
